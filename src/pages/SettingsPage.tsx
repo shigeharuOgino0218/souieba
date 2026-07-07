@@ -66,10 +66,12 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl p-4 sm:p-6">
       <header className="mb-4 flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon">
-          <Link to="/" aria-label="リスト一覧へ戻る">
-            <ArrowLeft className="size-4" />
-          </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          render={<Link to="/" aria-label="リスト一覧へ戻る" />}
+        >
+          <ArrowLeft className="size-4" />
         </Button>
         <h1 className="text-lg font-semibold">アカウント設定</h1>
       </header>

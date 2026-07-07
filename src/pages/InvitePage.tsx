@@ -61,8 +61,8 @@ export default function InvitePage() {
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/">リスト一覧へ</Link>
+              <Button variant="outline" className="w-full" render={<Link to="/" />}>
+                リスト一覧へ
               </Button>
             </CardFooter>
           </>
@@ -75,8 +75,8 @@ export default function InvitePage() {
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/">リスト一覧へ</Link>
+              <Button variant="outline" className="w-full" render={<Link to="/" />}>
+                リスト一覧へ
               </Button>
             </CardFooter>
           </>
@@ -96,8 +96,8 @@ export default function InvitePage() {
               >
                 {joining ? '参加中…' : '参加する'}
               </Button>
-              <Button asChild variant="ghost" className="w-full">
-                <Link to="/">参加しない</Link>
+              <Button variant="ghost" className="w-full" render={<Link to="/" />}>
+                参加しない
               </Button>
             </CardFooter>
           </>

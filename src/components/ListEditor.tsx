@@ -20,6 +20,7 @@ export function ListEditor({ listId }: { listId: string }) {
     setItemStore,
     deleteItem,
     addStore,
+    deleteStore,
   } = useListData(listId, session!.user.id)
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export function ListEditor({ listId }: { listId: string }) {
           onBackspaceEmpty={handleBackspaceEmpty}
           onSetStore={setItemStore}
           onAddStore={addStore}
+          onDeleteStore={deleteStore}
           registerInput={registerInput}
         />
       ))}

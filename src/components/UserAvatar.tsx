@@ -3,8 +3,8 @@ import { resolveAvatar } from '@/lib/avatars'
 
 const sizeClasses = {
   sm: 'size-5 [&_svg]:size-3',
-  md: 'size-7 [&_svg]:size-4',
-  lg: 'size-16 [&_svg]:size-8',
+  md: 'size-8 [&_svg]:!size-4',
+  lg: 'size-15 [&_svg]:size-9',
 } as const
 
 type Props = {

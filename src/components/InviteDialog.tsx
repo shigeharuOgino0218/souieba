@@ -48,11 +48,9 @@ export function InviteDialog({ listId }: { listId: string }) {
 
   return (
     <Dialog onOpenChange={(open) => void handleOpenChange(open)}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Share2 className="size-4" />
-          共有
-        </Button>
+      <DialogTrigger render={<Button variant="outline" size="sm" />}>
+        <Share2 className="size-4" />
+        共有
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

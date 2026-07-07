@@ -55,10 +55,12 @@ export default function SignUpPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/login" state={{ from }}>
-                ログイン画面へ
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full"
+              render={<Link to="/login" state={{ from }} />}
+            >
+              ログイン画面へ
             </Button>
           </CardFooter>
         </Card>

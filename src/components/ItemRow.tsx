@@ -12,6 +12,7 @@ type Props = {
   onBackspaceEmpty: (id: string) => void
   onSetStore: (itemId: string, storeId: string | null) => void
   onAddStore: (name: string) => string
+  onDeleteStore: (storeId: string) => void
   registerInput: (id: string, el: HTMLInputElement | null) => void
 }
 
@@ -24,6 +25,7 @@ export function ItemRow({
   onBackspaceEmpty,
   onSetStore,
   onAddStore,
+  onDeleteStore,
   registerInput,
 }: Props) {
   const store = item.store_id
@@ -64,6 +66,7 @@ export function ItemRow({
           selected={store}
           onSelect={(storeId) => onSetStore(item.id, storeId)}
           onAddStore={onAddStore}
+          onDeleteStore={onDeleteStore}
         />
       )}
     </div>

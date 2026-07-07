@@ -210,6 +210,20 @@ export function useListData(listId: string, userId: string) {
     [listId],
   )
 
+  const deleteStore = useCallback((id: string) => {
+    setStores((prev) => prev.filter((s) => s.id !== id))
+    setItems((prev) =>
+      prev.map((i) => (i.store_id === id ? { ...i, store_id: null } : i)),
+    )
+    supabase
+      .from('stores')
+      .delete()
+      .eq('id', id)
+      .then(({ error }) => {
+        if (error) toast.error('お店の削除に失敗しました')
+      })
+  }, [])
+
   return {
     items,
     stores,
@@ -220,5 +234,6 @@ export function useListData(listId: string, userId: string) {
     setItemStore,
     deleteItem,
     addStore,
+    deleteStore,
   }
 }

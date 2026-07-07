@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Crown, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/badge'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { UserAvatar } from '@/components/UserAvatar'
 
 type Member = {
@@ -21,6 +25,8 @@ type MemberRow = {
     avatar_color: string | null
   } | null
 }
+
+const MAX_VISIBLE = 5
 
 export function MemberList({ listId }: { listId: string }) {
   const [members, setMembers] = useState<Member[]>([])
@@ -64,24 +70,50 @@ export function MemberList({ listId }: { listId: string }) {
 
   if (members.length === 0) return null
 
+  const visible = members.slice(0, MAX_VISIBLE)
+  const extra = members.length - visible.length
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <Users className="size-3.5 text-muted-foreground" />
-      {members.map((member) => (
-        <Badge
-          key={member.user_id}
-          variant="outline"
-          className="gap-1 py-0.5 pl-1 font-normal"
-        >
+    <Popover>
+      <PopoverTrigger
+        aria-label="メンバー一覧を表示"
+        className="flex items-center -space-x-1.5"
+      >
+        {visible.map((member) => (
           <UserAvatar
+            key={member.user_id}
             icon={member.avatar_icon}
             color={member.avatar_color}
-            size="sm"
+            size="md"
+            className="ring-2 ring-background"
           />
-          {member.display_name}
-          {member.role === 'owner' && <Crown className="size-3 text-amber-500" />}
-        </Badge>
-      ))}
-    </div>
+        ))}
+        {extra > 0 && (
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground ring-2 ring-background">
+            +{extra}
+          </span>
+        )}
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-56 p-2">
+        <ul className="space-y-1">
+          {members.map((member) => (
+            <li
+              key={member.user_id}
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            >
+              <UserAvatar
+                icon={member.avatar_icon}
+                color={member.avatar_color}
+                size="md"
+              />
+              <span className="flex-1 truncate">{member.display_name}</span>
+              {member.role === 'owner' && (
+                <Badge variant="secondary">オーナー</Badge>
+              )}
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   )
 }
