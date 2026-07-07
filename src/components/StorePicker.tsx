@@ -1,6 +1,5 @@
 import { useState, type MouseEvent } from "react";
-import { Plus, Trash2, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,12 +9,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import {
-  Field,
-  FieldContent,
-  FieldLabel,
-  FieldTitle,
-} from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "./ui/label";
 import {
@@ -82,17 +75,7 @@ export function StorePicker({
       >
         <DrawerTrigger
           render={
-            selected ? (
-              <Button
-                variant="default"
-                size="xs"
-              />
-            ) : (
-              <Button
-                variant="outline"
-                size="xs"
-              />
-            )
+            <Button variant={selected ? "default" : "outline"} size="xs" />
           }
         >
           {selected ? selected.name : "お店未選択"}
@@ -121,15 +104,10 @@ export function StorePicker({
                 className="grid grid-cols-2 gap-1"
               >
                 {filtered.map((store) => (
-                  <div className="grid grid-cols-[1fr_auto] items-center border border-border rounded-lg p-2">
-                    {/* <FieldLabel key={store.id} htmlFor={store.id}>
-                      <Field orientation="horizontal">
-                        <RadioGroupItem value={store.id} id={store.id} />
-                        <FieldContent>
-                          <FieldTitle>{store.name}</FieldTitle>
-                        </FieldContent>
-                      </Field>
-                    </FieldLabel> */}
+                  <div
+                    key={store.id}
+                    className="grid grid-cols-[1fr_auto] items-center border border-border rounded-lg p-2"
+                  >
                     <div className="flex items-center gap-2">
                       <RadioGroupItem value={store.id} id={store.id} />
                       <Label htmlFor={store.id} className="text-xs">{store.name}</Label>
