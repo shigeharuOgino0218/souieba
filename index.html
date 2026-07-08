@@ -5,6 +5,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>そういえば - 買い物リスト共有</title>
+    <script>
+      const query = matchMedia("(prefers-color-scheme: dark)");
+      const applyTheme = () => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored === "dark" || (stored !== "light" && query.matches);
+        document.documentElement.classList.toggle("dark", dark);
+      };
+      applyTheme();
+      query.addEventListener("change", applyTheme);
+    </script>
   </head>
   <body>
     <div id="root"></div>

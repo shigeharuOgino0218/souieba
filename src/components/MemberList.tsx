@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
   Popover,
@@ -28,7 +29,17 @@ type MemberRow = {
 
 const MAX_VISIBLE = 5
 
-export function MemberList({ listId }: { listId: string }) {
+export function MemberList({
+  listId,
+  maxVisible = MAX_VISIBLE,
+  popover = true,
+  avatarClassName,
+}: {
+  listId: string
+  maxVisible?: number
+  popover?: boolean
+  avatarClassName?: string
+}) {
   const [members, setMembers] = useState<Member[]>([])
 
   const load = useCallback(async () => {
@@ -70,8 +81,36 @@ export function MemberList({ listId }: { listId: string }) {
 
   if (members.length === 0) return null
 
-  const visible = members.slice(0, MAX_VISIBLE)
+  const visible = members.slice(0, maxVisible)
   const extra = members.length - visible.length
+
+  const avatars = (
+    <>
+      {visible.map((member) => (
+        <UserAvatar
+          key={member.user_id}
+          icon={member.avatar_icon}
+          color={member.avatar_color}
+          size="md"
+          className={cn('ring-2 ring-background', avatarClassName)}
+        />
+      ))}
+      {extra > 0 && (
+        <span
+          className={cn(
+            'flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground ring-2 ring-background',
+            avatarClassName,
+          )}
+        >
+          +{extra}
+        </span>
+      )}
+    </>
+  )
+
+  if (!popover) {
+    return <span className="flex items-center -space-x-1.5">{avatars}</span>
+  }
 
   return (
     <Popover>
@@ -79,20 +118,7 @@ export function MemberList({ listId }: { listId: string }) {
         aria-label="メンバー一覧を表示"
         className="flex items-center -space-x-1.5"
       >
-        {visible.map((member) => (
-          <UserAvatar
-            key={member.user_id}
-            icon={member.avatar_icon}
-            color={member.avatar_color}
-            size="md"
-            className="ring-2 ring-background"
-          />
-        ))}
-        {extra > 0 && (
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground ring-2 ring-background">
-            +{extra}
-          </span>
-        )}
+        {avatars}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-56 p-2">
         <ul className="space-y-1">

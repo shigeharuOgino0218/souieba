@@ -1,31 +1,28 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   ArrowUpRight,
-  ChevronRight,
   CircleUserRound,
   ListChecks,
   LogOut,
-  Plus,
+  CirclePlus,
   Settings,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { cn } from '@/lib/utils'
 import type { List } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Drawer,
@@ -38,17 +35,19 @@ import {
 import { UserAvatar } from '@/components/UserAvatar'
 import { useMyProfile } from '@/hooks/useMyProfile'
 import { LAST_LIST_KEY, ListEditor } from '@/components/ListEditor'
+import { MemberList } from '@/components/MemberList'
+
+const MAX_TAB_AVATARS = 3
 
 export default function HomePage() {
   const { session, signOut } = useAuth()
   const { profile } = useMyProfile()
-  const navigate = useNavigate()
   const [lists, setLists] = useState<List[]>([])
   const [loading, setLoading] = useState(true)
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
 
   useEffect(() => {
     supabase
@@ -59,9 +58,13 @@ export default function HomePage() {
         if (error) toast.error('リストの取得に失敗しました')
         const fetched = (data as List[]) ?? []
         setLists(fetched)
-        // 最後に編集していたリストを展開した状態で表示する
+        // 最後に編集していたリストのタブを選択した状態で表示する
         const lastId = localStorage.getItem(LAST_LIST_KEY)
-        if (lastId && fetched.some((l) => l.id === lastId)) setExpandedId(lastId)
+        setActiveId(
+          lastId && fetched.some((l) => l.id === lastId)
+            ? lastId
+            : (fetched[0]?.id ?? null),
+        )
         setLoading(false)
       })
   }, [])
@@ -81,12 +84,16 @@ export default function HomePage() {
       toast.error('リストの作成に失敗しました')
       return
     }
-    navigate(`/lists/${(data as List).id}`)
+    const created = data as List
+    setLists((prev) => [...prev, created])
+    setActiveId(created.id)
+    setDialogOpen(false)
+    setNewName('')
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <header className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-2xl py-4">
+      <header className="mb-6 flex items-center justify-between px-4">
         <h1 className="flex items-center gap-2 text-lg font-semibold">
           <ListChecks className="size-5" />
           そういえば
@@ -143,58 +150,77 @@ export default function HomePage() {
       </header>
 
       {loading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Skeleton className="h-[84px] w-36 rounded-2xl" />
+            <Skeleton className="h-[84px] w-36 rounded-2xl" />
+          </div>
+          <Skeleton className="h-40 w-full" />
         </div>
       ) : lists.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">
-          まだリストがありません。最初のリストを作成しましょう。
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {lists.map((list) => {
-            const expanded = list.id === expandedId
-            return (
-              <Card key={list.id} className="gap-0 p-0">
-                <div className="flex items-center">
-                  <button
-                    type="button"
-                    className="flex flex-1 items-center gap-2 px-4 py-4 text-sm font-bold"
-                    aria-expanded={expanded}
-                    onClick={() => setExpandedId(expanded ? null : list.id)}
-                  >
-                    <ChevronRight
-                      className={cn(
-                        'size-4 text-muted-foreground transition-transform',
-                        expanded && 'rotate-90',
-                      )}
-                    />
-                    {list.name}
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="mr-2 text-muted-foreground"
-                    render={
-                      <Link
-                        to={`/lists/${list.id}`}
-                        aria-label={`${list.name}を開く`}
-                      />
-                    }
-                  >
-                    <ArrowUpRight className="size-4" />
-                  </Button>
-                </div>
-                {expanded && (
-                  <div className="border-t p-2">
-                    <ListEditor listId={list.id} />
-                  </div>
-                )}
-              </Card>
-            )
-          })}
+        <div className="py-12 text-center">
+          <p className="mb-4 text-sm text-muted-foreground">
+            まだリストがありません。最初のリストを作成しましょう。
+          </p>
+          <Button variant="outline" onClick={() => setDialogOpen(true)}>
+            <CirclePlus className="size-4" />
+            買い物リスト追加
+          </Button>
         </div>
+      ) : (
+        <Tabs value={activeId} onValueChange={(v) => setActiveId(v as string)}>
+          <div className="flex snap-x snap-mandatory items-stretch gap-2 overflow-x-auto overflow-y-hidden px-4 scroll-pl-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="gap-2 rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-auto">
+              {lists.map((list) => (
+                <TabsTrigger
+                  key={list.id}
+                  value={list.id}
+                  className="group/tab h-auto w-[min(180px,42vw)] flex-none snap-start flex-col items-start justify-between gap-3 rounded-xl bg-muted p-3 text-foreground data-active:bg-primary data-active:text-primary-foreground dark:text-foreground dark:data-active:bg-primary dark:data-active:text-primary-foreground"
+                >
+                  <span className="max-w-full truncate font-bold">
+                    {list.name}
+                  </span>
+                  <span className="flex min-h-8 items-center">
+                    <MemberList
+                      listId={list.id}
+                      maxVisible={MAX_TAB_AVATARS}
+                      popover={false}
+                      avatarClassName="ring-muted group-data-active/tab:ring-primary"
+                    />
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <Button
+              variant="secondary"
+              className="h-auto w-[min(180px,42vw)] grid items-center border-muted snap-start rounded-xl p-3"
+              onClick={() => setDialogOpen(true)}
+            >
+              <span className="max-w-full truncate font-bold">買い物リストを追加</span>
+              <CirclePlus className="size-6 mx-auto" />
+            </Button>
+          </div>
+          {lists.map((list) => (
+            <TabsContent key={list.id} value={list.id} className="px-4">
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground"
+                  render={
+                    <Link
+                      to={`/lists/${list.id}`}
+                      aria-label={`${list.name}を開く`}
+                    />
+                  }
+                >
+                  <ArrowUpRight className="size-4" />
+                </Button>
+              </div>
+              <ListEditor listId={list.id} />
+            </TabsContent>
+          ))}
+        </Tabs>
       )}
 
       <Dialog
@@ -204,10 +230,6 @@ export default function HomePage() {
           if (!open) setNewName('')
         }}
       >
-        <DialogTrigger render={<Button variant="outline" className="mt-6 w-full" />}>
-          <Plus className="size-4" />
-          買い物リスト追加
-        </DialogTrigger>
         <DialogContent className="top-24 translate-y-0 sm:top-1/2 sm:-translate-y-1/2 sm:max-w-md">
           <DialogHeader>
             <DialogTitle>買い物リストを追加</DialogTitle>
