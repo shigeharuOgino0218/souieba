@@ -210,6 +210,17 @@ export function useListData(listId: string, userId: string) {
     [listId],
   )
 
+  const renameStore = useCallback((id: string, name: string) => {
+    setStores((prev) => prev.map((s) => (s.id === id ? { ...s, name } : s)))
+    supabase
+      .from('stores')
+      .update({ name })
+      .eq('id', id)
+      .then(({ error }) => {
+        if (error) toast.error('お店の名前の変更に失敗しました')
+      })
+  }, [])
+
   const deleteStore = useCallback((id: string) => {
     setStores((prev) => prev.filter((s) => s.id !== id))
     setItems((prev) =>
@@ -234,6 +245,7 @@ export function useListData(listId: string, userId: string) {
     setItemStore,
     deleteItem,
     addStore,
+    renameStore,
     deleteStore,
   }
 }

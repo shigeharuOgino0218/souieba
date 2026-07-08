@@ -12,6 +12,7 @@ type Props = {
   onBackspaceEmpty: (id: string) => void
   onSetStore: (itemId: string, storeId: string | null) => void
   onAddStore: (name: string) => string
+  onRenameStore: (storeId: string, name: string) => void
   onDeleteStore: (storeId: string) => void
   registerInput: (id: string, el: HTMLInputElement | null) => void
 }
@@ -25,6 +26,7 @@ export function ItemRow({
   onBackspaceEmpty,
   onSetStore,
   onAddStore,
+  onRenameStore,
   onDeleteStore,
   registerInput,
 }: Props) {
@@ -44,7 +46,7 @@ export function ItemRow({
         value={item.name}
         placeholder="アイテム名を入力"
         className={cn(
-          'flex-1 text-base outline-none placeholder:text-muted-foreground/60',
+          'flex-1 text-base font-bold outline-none placeholder:text-muted-foreground/60',
           item.checked && 'text-muted-foreground line-through',
         )}
         onChange={(e) => onNameChange(item.id, e.target.value)}
@@ -66,6 +68,7 @@ export function ItemRow({
           selected={store}
           onSelect={(storeId) => onSetStore(item.id, storeId)}
           onAddStore={onAddStore}
+          onRenameStore={onRenameStore}
           onDeleteStore={onDeleteStore}
         />
       )}

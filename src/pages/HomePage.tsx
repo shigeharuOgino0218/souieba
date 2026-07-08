@@ -156,16 +156,6 @@ export default function HomePage() {
           </div>
           <Skeleton className="h-40 w-full" />
         </div>
-      ) : lists.length === 0 ? (
-        <div className="py-12 text-center">
-          <p className="mb-4 text-sm text-muted-foreground">
-            まだリストがありません。最初のリストを作成しましょう。
-          </p>
-          <Button variant="outline" onClick={() => setDialogOpen(true)}>
-            <CirclePlus className="size-4" />
-            買い物リスト追加
-          </Button>
-        </div>
       ) : (
         <Tabs value={activeId} onValueChange={(v) => setActiveId(v as string)}>
           <div className="flex snap-x snap-mandatory items-stretch gap-2 overflow-x-auto overflow-y-hidden px-4 scroll-pl-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -205,9 +195,9 @@ export default function HomePage() {
                 listId={list.id}
                 action={
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
-                    className="text-muted-foreground"
+                    className="rounded-lg text-muted-foreground"
                     render={
                       <Link
                         to={`/lists/${list.id}`}
@@ -215,7 +205,7 @@ export default function HomePage() {
                       />
                     }
                   >
-                    <ArrowUpRight className="size-4" />
+                    <ArrowUpRight />
                   </Button>
                 }
               />

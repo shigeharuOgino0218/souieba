@@ -5,11 +5,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Plus } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useListData } from "@/hooks/useListData";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ItemRow } from "@/components/ItemRow";
 
@@ -33,6 +32,7 @@ export function ListEditor({
     setItemStore,
     deleteItem,
     addStore,
+    renameStore,
     deleteStore,
   } = useListData(listId, session!.user.id);
 
@@ -94,21 +94,21 @@ export function ListEditor({
             onBackspaceEmpty={handleBackspaceEmpty}
             onSetStore={setItemStore}
             onAddStore={addStore}
+            onRenameStore={renameStore}
             onDeleteStore={deleteStore}
             registerInput={registerInput}
           />
         ))}
       </div>
-      <Separator />
-      <div className="mt-1 flex items-center gap-2">
+      {/* <Separator /> */}
+      <div className="flex items-center justify-between gap-2">
         <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 justify-start gap-2 text-muted-foreground"
+          variant="outline"
+          size="lg"
           onClick={handleAdd}
         >
-          <Plus className="size-4" />
-          アイテムを追加
+          <CirclePlus data-icon="inline-start" />
+          <span className="text-trim">追加</span>
         </Button>
         {action}
       </div>
