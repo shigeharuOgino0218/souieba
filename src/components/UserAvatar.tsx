@@ -2,9 +2,9 @@ import { cn } from '@/lib/utils'
 import { resolveAvatar } from '@/lib/avatars'
 
 const sizeClasses = {
-  sm: 'size-5 [&_svg]:size-3',
-  md: 'size-8 [&_svg]:!size-4',
-  lg: 'size-15 [&_svg]:size-9',
+  sm: 'size-8 [&_svg]:size-4',
+  md: 'size-10 [&_svg]:!size-5',
+  lg: 'size-20 [&_svg]:size-10',
 } as const
 
 type Props = {

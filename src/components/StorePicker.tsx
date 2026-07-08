@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { Store } from "@/lib/types";
-
+import { cn } from "@/lib/utils";            
 
 type Props = {
   stores: Store[];
@@ -75,10 +75,14 @@ export function StorePicker({
       >
         <DrawerTrigger
           render={
-            <Button variant={selected ? "default" : "outline"} size="xs" />
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn("text-xs", !selected && "border-dashed")}
+            />
           }
         >
-          {selected ? selected.name : "お店未選択"}
+          {selected ? `${selected.name}` : "お店未選択"}
         </DrawerTrigger>
         <DrawerContent initialFocus={false}>
           <DrawerHeader>
@@ -110,7 +114,9 @@ export function StorePicker({
                   >
                     <div className="flex items-center gap-2">
                       <RadioGroupItem value={store.id} id={store.id} />
-                      <Label htmlFor={store.id} className="text-xs">{store.name}</Label>
+                      <Label htmlFor={store.id} className="text-xs">
+                        {store.name}
+                      </Label>
                     </div>
                     <Button
                       variant="ghost"
@@ -133,9 +139,7 @@ export function StorePicker({
             {(canCreate || selected) && (
               <div className="flex flex-col gap-2">
                 {canCreate && (
-                  <Button onClick={handleCreate}>
-                    "{trimmed}" を追加
-                  </Button>
+                  <Button onClick={handleCreate}>"{trimmed}" を追加</Button>
                 )}
                 {selected && (
                   <Button

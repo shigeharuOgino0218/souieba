@@ -33,7 +33,7 @@ export function ItemRow({
     : null
 
   return (
-    <div className="group flex items-center gap-3 rounded-md px-2 py-1 hover:bg-muted/50">
+    <div className="group flex items-center gap-3 py-2">
       <Checkbox
         checked={item.checked}
         onCheckedChange={(checked) => onToggle(item.id, checked === true)}
@@ -44,7 +44,7 @@ export function ItemRow({
         value={item.name}
         placeholder="アイテム名を入力"
         className={cn(
-          'min-w-0 flex-1 bg-transparent py-1 text-base outline-none placeholder:text-muted-foreground/60',
+          'flex-1 text-base outline-none placeholder:text-muted-foreground/60',
           item.checked && 'text-muted-foreground line-through',
         )}
         onChange={(e) => onNameChange(item.id, e.target.value)}

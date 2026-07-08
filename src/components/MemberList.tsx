@@ -91,7 +91,7 @@ export function MemberList({
           key={member.user_id}
           icon={member.avatar_icon}
           color={member.avatar_color}
-          size="md"
+          size="sm"
           className={cn('ring-2 ring-background', avatarClassName)}
         />
       ))}

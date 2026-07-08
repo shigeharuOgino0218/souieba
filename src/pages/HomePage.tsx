@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import {
   ArrowUpRight,
   CircleUserRound,
-  ListChecks,
   LogOut,
   CirclePlus,
   Settings,
@@ -36,6 +35,7 @@ import { UserAvatar } from '@/components/UserAvatar'
 import { useMyProfile } from '@/hooks/useMyProfile'
 import { LAST_LIST_KEY, ListEditor } from '@/components/ListEditor'
 import { MemberList } from '@/components/MemberList'
+import logo from '@/assets/logo.svg'
 
 const MAX_TAB_AVATARS = 3
 
@@ -92,11 +92,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-4">
-      <header className="mb-6 flex items-center justify-between px-4">
-        <h1 className="flex items-center gap-2 text-lg font-semibold">
-          <ListChecks className="size-5" />
-          そういえば
+    <div className="mx-auto max-w-2xl">
+      <header className="flex justify-between items-center h-16 mb-4 px-4">
+        <h1>
+          <img src={logo} alt="そういえば" className="h-6" />
         </h1>
         <Drawer>
           <DrawerTrigger
@@ -104,7 +103,7 @@ export default function HomePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full text-muted-foreground"
+                className="w-fit h-fit border-none"
                 aria-label="アカウントメニュー"
               />
             }
@@ -193,7 +192,7 @@ export default function HomePage() {
             </TabsList>
             <Button
               variant="secondary"
-              className="h-auto w-[min(180px,42vw)] grid items-center border-muted snap-start rounded-xl p-3"
+              className="h-auto w-[min(180px,42vw)] grid items-center border-border snap-start rounded-xl p-3"
               onClick={() => setDialogOpen(true)}
             >
               <span className="max-w-full truncate font-bold">買い物リストを追加</span>
@@ -201,23 +200,25 @@ export default function HomePage() {
             </Button>
           </div>
           {lists.map((list) => (
-            <TabsContent key={list.id} value={list.id} className="px-4">
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground"
-                  render={
-                    <Link
-                      to={`/lists/${list.id}`}
-                      aria-label={`${list.name}を開く`}
-                    />
-                  }
-                >
-                  <ArrowUpRight className="size-4" />
-                </Button>
-              </div>
-              <ListEditor listId={list.id} />
+            <TabsContent key={list.id} value={list.id} className="mt-6 px-4">
+              <ListEditor
+                listId={list.id}
+                action={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground"
+                    render={
+                      <Link
+                        to={`/lists/${list.id}`}
+                        aria-label={`${list.name}を開く`}
+                      />
+                    }
+                  >
+                    <ArrowUpRight className="size-4" />
+                  </Button>
+                }
+              />
             </TabsContent>
           ))}
         </Tabs>
