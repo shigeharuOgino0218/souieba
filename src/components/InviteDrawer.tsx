@@ -1,21 +1,29 @@
-import { useState } from 'react'
-import { Check, Copy, Share2 } from 'lucide-react'
+import { useState, type ReactElement, type ReactNode } from 'react'
+import { Check, Copy, Share } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { copyToClipboard } from '@/lib/clipboard'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 
-export function InviteDialog({ listId }: { listId: string }) {
+export function InviteDrawer({
+  listId,
+  trigger,
+  children,
+}: {
+  listId: string
+  trigger?: ReactElement
+  children?: ReactNode
+}) {
   const { session } = useAuth()
   const [url, setUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -47,19 +55,26 @@ export function InviteDialog({ listId }: { listId: string }) {
   }
 
   return (
-    <Dialog onOpenChange={(open) => void handleOpenChange(open)}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        <Share2 className="size-4" />
-        共有
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>メンバーを招待</DialogTitle>
-          <DialogDescription>
-            このURLを共有すると、開いた人がこのリストに参加して一緒に編集できます(有効期限7日)。
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex items-center gap-2">
+    <Drawer
+      showSwipeHandle={true}
+      onOpenChange={(open) => void handleOpenChange(open)}
+    >
+      <DrawerTrigger render={trigger ?? <Button variant="outline" size="sm" />}>
+        {children ?? (
+          <>
+            <Share className="size-4" />
+            共有
+          </>
+        )}
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>招待URLを発行しました</DrawerTitle>
+          <DrawerDescription>
+            このURLを共有すると開いた人がこのリストに参加して一緒に編集できます(有効期限7日)。
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="flex items-center gap-2 px-4 pb-6">
           <Input
             readOnly
             value={url ?? '作成中…'}
@@ -76,7 +91,7 @@ export function InviteDialog({ listId }: { listId: string }) {
             {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   )
 }

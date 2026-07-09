@@ -19,7 +19,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { LAST_LIST_KEY, ListEditor } from '@/components/ListEditor'
-import { InviteDialog } from '@/components/InviteDialog'
+import { InviteDrawer } from '@/components/InviteDrawer'
 import { MemberList } from '@/components/MemberList'
 
 export default function ListPage() {
@@ -85,7 +85,7 @@ export default function ListPage() {
         ) : (
           <h1 className="flex-1 truncate text-lg font-semibold">{list!.name}</h1>
         )}
-        <InviteDialog listId={listId!} />
+        <InviteDrawer listId={listId!} />
         {isOwner && (
           <AlertDialog>
             <AlertDialogTrigger

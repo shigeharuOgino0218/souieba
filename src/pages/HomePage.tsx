@@ -6,6 +6,7 @@ import {
   LogOut,
   CirclePlus,
   Settings,
+  Share,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
@@ -35,6 +36,7 @@ import { UserAvatar } from '@/components/UserAvatar'
 import { useMyProfile } from '@/hooks/useMyProfile'
 import { LAST_LIST_KEY, ListEditor } from '@/components/ListEditor'
 import { MemberList } from '@/components/MemberList'
+import { InviteDrawer } from '@/components/InviteDrawer'
 import logo from '@/assets/logo.svg'
 
 const MAX_TAB_AVATARS = 3
@@ -97,7 +99,7 @@ export default function HomePage() {
         <h1>
           <img src={logo} alt="そういえば" className="h-6" />
         </h1>
-        <Drawer>
+        <Drawer showSwipeHandle={true}>
           <DrawerTrigger
             render={
               <Button
@@ -194,19 +196,34 @@ export default function HomePage() {
               <ListEditor
                 listId={list.id}
                 action={
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-lg text-muted-foreground"
-                    render={
-                      <Link
-                        to={`/lists/${list.id}`}
-                        aria-label={`${list.name}を開く`}
-                      />
-                    }
-                  >
-                    <ArrowUpRight />
-                  </Button>
+                  <div className="flex items-center border rounded-full p-0.5">
+                    <InviteDrawer
+                      listId={list.id}
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          // className="rounded-lg text-muted-foreground"
+                          aria-label={`${list.name}を共有`}
+                        />
+                      }
+                    >
+                      <Share />
+                    </InviteDrawer>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      // className="rounded-lg text-muted-foreground"
+                      render={
+                        <Link
+                          to={`/lists/${list.id}`}
+                          aria-label={`${list.name}を開く`}
+                        />
+                      }
+                    >
+                      <ArrowUpRight />
+                    </Button>
+                  </div>
                 }
               />
             </TabsContent>

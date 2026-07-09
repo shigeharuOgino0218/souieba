@@ -82,7 +82,7 @@ export function StorePicker({
             <Button
               variant="outline"
               size="sm"
-              className={cn("text-xs", !selected && "border-dashed")}
+              className={cn("text-xs", selected ? "!bg-secondary" : "border-dashed text-muted-foreground")}
             />
           }
         >
@@ -92,7 +92,7 @@ export function StorePicker({
           <DrawerHeader>
             <DrawerTitle>お店を選択</DrawerTitle>
           </DrawerHeader>
-          <div className="grid gap-4 overflow-y-auto p-4">
+          <div className="grid gap-4 overflow-y-auto px-4">
             <div className="flex items-center gap-2">
               <Input
                 placeholder="お店を追加 or 検索"
@@ -183,7 +183,7 @@ export function StorePicker({
               </DrawerHeader>
               <form
                 onSubmit={handleRename}
-                className="grid gap-5 overflow-y-auto p-4"
+                className="grid gap-5 overflow-y-auto px-4"
               >
                 <div className="flex items-center gap-2">
                   <Input
@@ -230,7 +230,7 @@ export function StorePicker({
                       このお店を選択しているアイテムからも外れます。
                     </DrawerDescription>
                   </DrawerHeader>
-                  <div className="flex flex-col gap-2 p-4 w-64  mx-auto">
+                  <div className="flex flex-col gap-2 w-64 mx-auto px-4">
                     <Button
                       variant="destructive"
                       size="lg"
