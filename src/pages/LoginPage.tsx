@@ -5,14 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/PasswordInput'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import logo from '@/assets/logo.svg'
 
 export default function LoginPage() {
   const { session, signIn } = useAuth()
@@ -39,15 +32,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>ログイン</CardTitle>
-          <CardDescription>買い物リストを共有しよう</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
+    <div className="grid min-h-svh items-center px-8 pb-24">
+      <div className="w-full max-w-sm mx-auto space-y-6">
+        <div className="flex flex-col items-center gap-4">
+          <img src={logo} alt="そういえば" className="h-8" />
+          <p className="text-sm text-muted-foreground">
+            "そういえば、あれ買わなきゃ"をみんなで共有
+          </p>
+        </div>
+        <h1 className="text-center text-xl font-bold">ログイン</h1>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
+            <div className="space-y-3">
               <Label htmlFor="email">メールアドレス</Label>
               <Input
                 id="email"
@@ -58,7 +54,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="password">パスワード</Label>
               <PasswordInput
                 id="password"
@@ -69,9 +65,22 @@ export default function LoginPage() {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-          </CardContent>
-          <CardFooter className="mt-6 flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <p className="text-sm text-muted-foreground">
+              <Link
+                to="/forgot-password"
+                className="text-foreground underline underline-offset-4"
+              >
+                パスワードをお忘れですか？
+              </Link>
+            </p>
+          </div>
+          <div className="flex flex-col gap-6">
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={submitting || !email || !password}
+            >
               {submitting ? 'ログイン中…' : 'ログイン'}
             </Button>
             <p className="text-sm text-muted-foreground">
@@ -84,9 +93,9 @@ export default function LoginPage() {
                 新規登録
               </Link>
             </p>
-          </CardFooter>
+          </div>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }

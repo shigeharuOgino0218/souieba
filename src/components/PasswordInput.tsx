@@ -13,7 +13,7 @@ export function PasswordInput(props: Props) {
   const [visible, setVisible] = useState(false)
 
   return (
-    <InputGroup>
+    <InputGroup className="h-10 border-border">
       <InputGroupInput type={visible ? 'text' : 'password'} {...props} />
       <InputGroupAddon align="inline-end">
         <InputGroupButton

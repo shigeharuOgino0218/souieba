@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   ArrowUpRight,
   CircleUserRound,
-  LogOut,
   CirclePlus,
-  Settings,
   Share,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -15,6 +13,7 @@ import type { List } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -122,27 +121,28 @@ export default function HomePage() {
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>アカウント</DrawerTitle>
+              <DrawerTitle>設定</DrawerTitle>
             </DrawerHeader>
-            <div className="flex flex-col gap-1 px-4 pb-6">
+            <div className="grid px-4 pb-6">
               <Button
                 variant="ghost"
-                className="h-12 justify-start text-base"
+                className="h-12 gap-3 text-base"
                 render={<Link to="/settings" />}
               >
-                <Settings className="size-5" />
+                <CircleUserRound data-icon="inline" className='size-5' />
                 アカウント設定
+                <ArrowUpRight className="ml-auto text-muted-foreground" />
               </Button>
+              <Separator className="my-1" />
               <DrawerClose
                 render={
                   <Button
-                    variant="ghost"
-                    className="h-12 justify-start text-base"
+                    variant="destructive"
+                    className="w-fit mt-4"
                     onClick={() => void signOut()}
                   />
                 }
               >
-                <LogOut className="size-5" />
                 ログアウト
               </DrawerClose>
             </div>

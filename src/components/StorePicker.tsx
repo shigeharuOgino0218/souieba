@@ -93,7 +93,7 @@ export function StorePicker({
             <DrawerTitle>お店を選択</DrawerTitle>
           </DrawerHeader>
           <div className="grid gap-4 overflow-y-auto px-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-1">
               <Input
                 placeholder="お店を追加 or 検索"
                 value={search}
@@ -124,7 +124,7 @@ export function StorePicker({
                 {filtered.map((store) => (
                   <div
                     key={store.id}
-                    className="grid grid-cols-[1fr_auto] items-center bg-muted rounded-full p-1 outline-2 outline-transparent outline-offset-2 has-data-checked:outline-primary"
+                    className="grid grid-cols-[1fr_auto] items-center bg-muted rounded-full p-1 ring-2 ring-transparent has-data-checked:ring-primary"
                   >
                     <div className="flex items-center gap-2 px-2.5">
                       <RadioGroupItem
