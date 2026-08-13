@@ -84,12 +84,14 @@ openssl rand -base64 32   # 共有シークレット(NOTIFY_SHARED_SECRET)
 VAPID_KEYS={"publicKey":{...},"privateKey":{...}}
 VAPID_SUBJECT=mailto:you@example.com
 NOTIFY_SHARED_SECRET=vxW9P0xbl…（openssl が出した値をそのまま貼る）
-NOTIFY_DELAY_MS=1500
-NOTIFY_WINDOW_SEC=90
+NOTIFY_DELAY_MS=60000
+NOTIFY_WINDOW_SEC=180
 ```
 
 `NOTIFY_SHARED_SECRET` は DB トリガーが Edge Function を呼ぶときの合言葉です。
 Edge Function 側(この `.env`)と DB 側(Vault)で値が一致していないと 403 で弾かれます。
+
+`NOTIFY_DELAY_MS` と `NOTIFY_WINDOW_SEC` の意味は「通知タイミングの設計」を参照してください。
 
 ### 2. Vault にシークレットを登録
 
@@ -138,6 +140,33 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
   https://<project-ref>.supabase.co/functions/v1/notify-item-added
 ```
 
+### 通知タイミングの設計
+
+通知が飛ぶのは **`items.name` が空 → 非空 になった1回だけ**です(`0004_push_notifications.sql` のトリガーの `when` 句)。
+名前を後から編集しても2通目は飛びません。
+
+そのため「コーヒー」まで入力した時点でトリガーが発火し、あとから「牛乳」を書き足しても
+**再通知はされません**。これに対応するため、Edge Function は起動後すぐ送らず、
+`NOTIFY_DELAY_MS` 待ってから `items.name` を**読み直して**から送ります。
+
+```
+入力停止 → 500ms後に UPDATE → トリガー発火 → Edge Function 起動
+                                                └→ 60秒待つ → name を読み直す → 送信
+```
+
+| 設定 | 既定値 | 意味 |
+|---|---|---|
+| `NOTIFY_DELAY_MS` | 60000 | 名前を読み直すまでの待ち時間。**この時間内に書き足した分は正しく通知に反映される**。長くすると通知は遅れるが取りこぼしが減る |
+| `NOTIFY_WINDOW_SEC` | 180 | 「〇〇さんが3件追加しました」と数える集計範囲。通知タイミングには影響しない。`NOTIFY_DELAY_MS` より十分長くすること |
+
+待ち時間はサーバー側で消化するので、**その間にアプリを閉じても通知は送られます**。
+クライアントに依存するのは「入力停止から 500ms 後の UPDATE が DB に届くか」だけです。
+
+上限は Edge Function の実行時間(Free プランで wall clock 150秒)です。
+`NOTIFY_DELAY_MS` を伸ばす場合はこれを超えないようにしてください。
+なお呼び出し元の `pg_net` を待たせないよう、Edge Function は 202 を即返してから
+バックグラウンド(`EdgeRuntime.waitUntil`)で送信しています。
+
 ### 制約
 
 - **iOS は 16.4 以上かつ「ホーム画面に追加」した PWA としてのみ通知を受け取れます。** Safari のタブでは動きません。
@@ -172,7 +201,17 @@ from net._http_response order by id desc limit 5;
 |---|---|
 | 行が増えない | トリガーが発火していない。アイテム名が空→非空になったか、Vault の2件が登録済みかを確認 |
 | `status_code` が 403 | 共有シークレットの不一致。`supabase/functions/.env` の `NOTIFY_SHARED_SECRET` と Vault の `notify_shared_secret` を突き合わせる |
-| `content` が `{"sent":0}` | 送信先が0件。同じリストに自分以外のメンバーがいるか、その人が通知を ON にしているかを確認(自分の追加では自分に通知は飛びません) |
-| `content` の `sent` が1以上なのに届かない | **OS 側で通知がブロックされている**。macOS ならシステム設定 → 通知 → Google Chrome を確認 |
+| `status_code` が 202 なのに届かない | Edge Function は受理済み。実際の送信結果は下記のログで確認する |
 
-Edge Function 側のログは ダッシュボード → Edge Functions → Logs。
+送信結果は **ダッシュボード → Edge Functions → notify-item-added → Logs** に出ます
+(`NOTIFY_DELAY_MS` の分だけ遅れて記録される点に注意)。
+
+```
+notified { listId: "...", sent: 1, items: 2, gone: 0 }
+```
+
+| ログ | 原因 |
+|---|---|
+| ログ自体が出ない | 送信先が0件。同じリストに自分以外のメンバーがいるか、その人が通知を ON にしているかを確認(自分の追加では自分に通知は飛びません) |
+| `sent` が1以上なのに届かない | **OS 側で通知がブロックされている**。macOS ならシステム設定 → 通知 → Google Chrome を確認 |
+| `gone` が増える | 購読が失効していた行を自動削除している。設定画面で通知を ON にし直す |

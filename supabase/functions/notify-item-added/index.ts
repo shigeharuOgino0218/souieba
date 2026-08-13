@@ -41,15 +41,16 @@ function buildBody(actor: string, names: string[]): string {
   return `${actor}さんが${names.length}件追加しました（${head}${rest}）`
 }
 
-Deno.serve(async (req) => {
-  if (req.method !== 'POST') return new Response('method not allowed', { status: 405 })
-  if (!SHARED_SECRET || req.headers.get('x-notify-secret') !== SHARED_SECRET) {
-    return new Response('forbidden', { status: 403 })
-  }
+// DELAY_MS が長いと呼び出し元(pg_net)がタイムアウトするので、応答は即返して裏で送る
+function runInBackground(task: Promise<unknown>) {
+  const runtime = (globalThis as {
+    EdgeRuntime?: { waitUntil(promise: Promise<unknown>): void }
+  }).EdgeRuntime
+  if (runtime) runtime.waitUntil(task)
+  else void task
+}
 
-  const { list_id: listId, actor_id: actorId } = await req.json().catch(() => ({}))
-  if (!listId || !actorId) return new Response('bad request', { status: 400 })
-
+async function notify(listId: string, actorId: string) {
   await new Promise((resolve) => setTimeout(resolve, DELAY_MS))
 
   const since = new Date(Date.now() - WINDOW_SEC * 1000).toISOString()
@@ -68,7 +69,7 @@ Deno.serve(async (req) => {
   ])
 
   const userIds = (membersRes.data ?? []).map((m) => m.user_id)
-  if (userIds.length === 0) return Response.json({ sent: 0 })
+  if (userIds.length === 0) return
 
   const seen = new Set<string>()
   const names: string[] = []
@@ -120,5 +121,25 @@ Deno.serve(async (req) => {
     .delete()
     .lt('created_at', new Date(Date.now() - EVENT_RETENTION_MS).toISOString())
 
-  return Response.json({ sent: (subs?.length ?? 0) - gone.length, items: names.length })
+  console.log('notified', {
+    listId,
+    sent: (subs?.length ?? 0) - gone.length,
+    items: names.length,
+    gone: gone.length,
+  })
+}
+
+Deno.serve(async (req) => {
+  if (req.method !== 'POST') return new Response('method not allowed', { status: 405 })
+  if (!SHARED_SECRET || req.headers.get('x-notify-secret') !== SHARED_SECRET) {
+    return new Response('forbidden', { status: 403 })
+  }
+
+  const { list_id: listId, actor_id: actorId } = await req.json().catch(() => ({}))
+  if (!listId || !actorId) return new Response('bad request', { status: 400 })
+
+  runInBackground(
+    notify(listId, actorId).catch((err) => console.error('notify failed', String(err))),
+  )
+  return Response.json({ accepted: true }, { status: 202 })
 })

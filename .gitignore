@@ -10,7 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dev-dist
 *.local
+
+# Supabase CLI のローカル状態
+supabase/.temp
 
 # Editor directories and files
 .vscode/*
