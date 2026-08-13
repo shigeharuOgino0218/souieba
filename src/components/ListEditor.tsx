@@ -82,7 +82,7 @@ export function ListEditor({
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-36">
         {items.map((item) => (
           <ItemRow
             key={item.id}
@@ -101,11 +101,12 @@ export function ListEditor({
         ))}
       </div>
       {/* <Separator /> */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="fixed bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)))] z-10 flex items-center justify-between w-[calc(100%-2rem)] bg-muted/50 rounded-full translate-y-1/8 p-2 backdrop-blur">
         <Button
           variant="outline"
           size="lg"
           onClick={handleAdd}
+          className="!bg-background dark:!bg-muted"
         >
           <CirclePlus data-icon="inline-start" />
           <span className="text-trim">追加</span>

@@ -196,14 +196,13 @@ export default function HomePage() {
               <ListEditor
                 listId={list.id}
                 action={
-                  <div className="flex items-center border rounded-full p-0.5">
+                  <div className="flex items-center bg-background border rounded-full p-0.5 dark:bg-muted">
                     <InviteDrawer
                       listId={list.id}
                       trigger={
                         <Button
                           variant="ghost"
                           size="icon"
-                          // className="rounded-lg text-muted-foreground"
                           aria-label={`${list.name}を共有`}
                         />
                       }
@@ -213,7 +212,6 @@ export default function HomePage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      // className="rounded-lg text-muted-foreground"
                       render={
                         <Link
                           to={`/lists/${list.id}`}

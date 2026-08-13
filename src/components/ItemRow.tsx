@@ -35,7 +35,7 @@ export function ItemRow({
     : null
 
   return (
-    <div className="group flex items-center gap-3 py-2">
+    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2 overflow-hidden">
       <Checkbox
         checked={item.checked}
         onCheckedChange={(checked) => onToggle(item.id, checked === true)}
@@ -46,7 +46,7 @@ export function ItemRow({
         value={item.name}
         placeholder="アイテム名を入力"
         className={cn(
-          'flex-1 text-base font-bold outline-none placeholder:text-muted-foreground/60',
+          'w-full text-base font-bold outline-none placeholder:text-muted-foreground/60',
           item.checked && 'text-muted-foreground line-through',
         )}
         onChange={(e) => onNameChange(item.id, e.target.value)}
