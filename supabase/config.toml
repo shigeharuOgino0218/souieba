@@ -1,0 +1,5 @@
+project_id = "exarzqbcxkreolbdmbpi"
+
+# 呼び出し元は DB トリガー。Authorization ヘッダではなく x-notify-secret で検証する
+[functions.notify-item-added]
+verify_jwt = false

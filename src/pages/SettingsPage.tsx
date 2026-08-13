@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Separator } from "@/components/ui/separator";
+import { PushToggle } from "@/components/PushToggle";
 
 export default function SettingsPage() {
   const { session } = useAuth();
@@ -77,84 +78,90 @@ export default function SettingsPage() {
           <Skeleton className="h-24 w-full" />
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <UserAvatar icon={avatarIcon} color={avatarColor} size="lg" />
+        <>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <UserAvatar icon={avatarIcon} color={avatarColor} size="lg" />
 
-          <div className="space-y-2">
-            <div className="grid grid-cols-8 gap-2">
-              {Object.entries(AVATAR_ICONS).map(([key, Icon]) => (
-                <button
-                  key={key}
-                  type="button"
-                  aria-label={key}
-                  aria-pressed={avatarIcon === key}
-                  onClick={() => setAvatarIcon(key)}
-                  className={cn(
-                    "flex aspect-square items-center justify-center rounded-full border text-muted-foreground hover:bg-muted",
-                    avatarIcon === key &&
-                      "border-primary text-foreground ring-1 ring-primary",
-                  )}
-                >
-                  <Icon className="size-4" />
-                </button>
-              ))}
+            <div className="space-y-2">
+              <div className="grid grid-cols-8 gap-2">
+                {Object.entries(AVATAR_ICONS).map(([key, Icon]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-label={key}
+                    aria-pressed={avatarIcon === key}
+                    onClick={() => setAvatarIcon(key)}
+                    className={cn(
+                      "flex aspect-square items-center justify-center rounded-full border text-muted-foreground hover:bg-muted",
+                      avatarIcon === key &&
+                        "border-primary text-foreground ring-1 ring-primary",
+                    )}
+                  >
+                    <Icon className="size-4" />
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <div className="grid grid-cols-10 gap-2">
-              {Object.entries(AVATAR_COLORS).map(([key, color]) => (
-                <button
-                  key={key}
-                  type="button"
-                  aria-label={key}
-                  aria-pressed={avatarColor === key}
-                  onClick={() => setAvatarColor(key)}
-                  className={cn(
-                    "flex aspect-square justify-end overflow-hidden rounded-full",
-                    color.bg,
-                    color.text,
-                    `border-2 border-${key}-200`,
-                    avatarColor === key &&
-                      "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                  )}
-                >
-                  <span className="w-1/2 h-full bg-current" />
-                </button>
-              ))}
+            <div className="space-y-2">
+              <div className="grid grid-cols-10 gap-2">
+                {Object.entries(AVATAR_COLORS).map(([key, color]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-label={key}
+                    aria-pressed={avatarColor === key}
+                    onClick={() => setAvatarColor(key)}
+                    className={cn(
+                      "flex aspect-square justify-end overflow-hidden rounded-full",
+                      color.bg,
+                      color.text,
+                      `border-2 border-${key}-200`,
+                      avatarColor === key &&
+                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                    )}
+                  >
+                    <span className="w-1/2 h-full bg-current" />
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <Separator />
+            <Separator />
 
-          <div className="space-y-2">
-            <Label htmlFor="displayName" className="mb-3">
-              表示名
-            </Label>
-            <Input
-              id="displayName"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="mb-3"
-            />
-            <p className="text-xs text-muted-foreground">
-              共有リストのメンバー一覧に表示される名前です。
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="displayName" className="mb-3">
+                表示名
+              </Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="mb-3"
+              />
+              <p className="text-xs text-muted-foreground">
+                共有リストのメンバー一覧に表示される名前です。
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="displayName" className="mb-3">
-              メールアドレス（変更不可）
-            </Label>
-            <p className="mb-3 text-sm text-muted-foreground">
-              {session?.user.email}
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="displayName" className="mb-3">
+                メールアドレス（変更不可）
+              </Label>
+              <p className="mb-3 text-sm text-muted-foreground">
+                {session?.user.email}
+              </p>
+            </div>
 
-          <Button type="submit" size="lg" disabled={saving || displayName.trim() === ""}>
-            {saving ? "保存中…" : "保存"}
-          </Button>
-        </form>
+            <Button type="submit" size="lg" disabled={saving || displayName.trim() === ""}>
+              {saving ? "保存中…" : "保存"}
+            </Button>
+          </form>
+
+          {/* Switch は button なのでフォームの内側だとプロフィール保存が誤発火する */}
+          <Separator className="my-6" />
+          <PushToggle />
+        </>
       )}
     </div>
   );

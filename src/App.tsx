@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '@/hooks/useAuth'
 import { RequireAuth } from '@/components/RequireAuth'
+import { PushNavigator } from '@/components/PushNavigator'
 import { Toaster } from '@/components/ui/sonner'
 import LoginPage from '@/pages/LoginPage'
 import SignUpPage from '@/pages/SignUpPage'
@@ -15,6 +16,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <PushNavigator />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />

@@ -7,6 +7,7 @@ import {
 } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { unsubscribePush } from '@/lib/push'
 
 type SignUpResult = {
   error: string | null
@@ -69,6 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    // 端末を共有している場合、購読を残すと次のユーザーに前のユーザー宛の通知が届く
+    await unsubscribePush().catch(() => {})
     await supabase.auth.signOut()
   }
 
