@@ -22,14 +22,23 @@ Bun / Vite + React + TypeScript / Tailwind CSS + shadcn/ui / Supabase (Auth, Pos
 [mise](https://mise.jdx.dev/) を使っています。リポジトリ直下で:
 
 ```sh
-mise install   # mise.toml の bun をインストール
+mise install   # mise.toml の bun / node をインストール
 bun install
 ```
+
+Supabase CLI も必要です(`brew install supabase/tap/supabase`)。
 
 ### 2. Supabase プロジェクト
 
 1. [supabase.com](https://supabase.com) でプロジェクトを作成
-2. ダッシュボードの **SQL Editor** で `supabase/migrations/` の SQL を番号順に実行
+2. CLI からリンクしてマイグレーションを適用:
+
+   ```sh
+   supabase login
+   supabase link --project-ref <project-ref>
+   bun run db:push
+   ```
+
 3. **Authentication → Sign In / Providers → Email** で、開発中は `Confirm email` を OFF にすると確認メールなしでサインアップできます
 4. **Database → Extensions** で `pg_net` と `supabase_vault` を有効化(プッシュ通知を使う場合)
 
@@ -58,6 +67,32 @@ bun dev
 Vercel にデプロイします。ルーティングは `BrowserRouter` によるクライアントサイドのみなので、
 `/invite/<token>` のような URL へ直接アクセスされても `index.html` を返すよう
 [`vercel.json`](vercel.json) で rewrite を設定しています。他のホスティングへ移す場合も同等の設定が必要です。
+
+## 開発
+
+`bun run check` で format / lint / typecheck / test をまとめて実行します。作業を終える前にこれを通してください。
+
+### スキーマを変更する
+
+**スキーマの真実の源は `supabase/migrations/` です。ダッシュボードの SQL Editor で直接変更しないでください。**
+CLI で適用し、TypeScript の型はそこから生成します。
+
+```sh
+# 1. 連番でマイグレーションを追加する(例: supabase/migrations/0005_add_memo.sql)
+# 2. リモートに適用し、続けて型を再生成する
+bun run db:migrate
+```
+
+`db:migrate` は `supabase db push`(本番 DB への適用。確認プロンプトあり)と
+`bun run db:types`(`src/lib/database.types.ts` の再生成)を続けて実行します。
+
+生成された型は [`src/lib/supabase.ts`](src/lib/supabase.ts) の `createClient<Database>` に渡っているので、
+存在しないカラム名や RPC の引数ミスはコンパイルエラーになります。
+`src/lib/database.types.ts` は生成物なので手で編集しないでください。
+
+> ダッシュボードで手動変更してしまった場合、CLI の履歴と実体がずれます。
+> `supabase migration list` で Local / Remote を突き合わせ、
+> 既に適用済みのものは `supabase migration repair --status applied <version>` で記録を合わせます。
 
 ## プッシュ通知のセットアップ
 
