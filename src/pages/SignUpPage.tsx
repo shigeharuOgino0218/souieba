@@ -1,53 +1,53 @@
-import { useEffect, useState, type SubmitEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/PasswordInput";
-import logo from "@/assets/logo.svg";
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/PasswordInput'
+import logo from '@/assets/logo.svg'
 
 export default function SignUpPage() {
-  const { session, signUp } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? "/";
+  const { session, signUp } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from ?? '/'
 
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [confirmationSent, setConfirmationSent] = useState(false);
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [confirmationSent, setConfirmationSent] = useState(false)
 
   useEffect(() => {
-    if (session) navigate(from, { replace: true });
-  }, [session, from, navigate]);
+    if (session) navigate(from, { replace: true })
+  }, [session, from, navigate])
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
+    e.preventDefault()
+    setSubmitting(true)
+    setError(null)
     const result = await signUp(
       email,
       password,
-      displayName || email.split("@")[0],
-    );
-    setSubmitting(false);
+      displayName || email.split('@')[0],
+    )
+    setSubmitting(false)
     if (result.error) {
-      setError(result.error);
-      return;
+      setError(result.error)
+      return
     }
-    if (result.needsEmailConfirmation) setConfirmationSent(true);
-  };
+    if (result.needsEmailConfirmation) setConfirmationSent(true)
+  }
 
   if (confirmationSent) {
     return (
       <div className="grid min-h-svh items-center px-8 pb-24">
-        <div className="w-full max-w-sm mx-auto space-y-6 text-center">
+        <div className="mx-auto w-full max-w-sm space-y-6 text-center">
           <h1 className="text-xl font-bold">確認メールを送信しました</h1>
           <p className="text-sm text-muted-foreground">
-            {email || "test.example@example.com"} 宛に
+            {email || 'test.example@example.com'} 宛に
             <br />
             確認メールを送信しました。
             <br />
@@ -63,12 +63,12 @@ export default function SignUpPage() {
           </Button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="grid min-h-svh items-center px-8 pb-24">
-      <div className="w-full max-w-sm mx-auto space-y-6">
+      <div className="mx-auto w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-4">
           <img src={logo} alt="そういえば" className="h-8" />
           <p className="text-sm text-muted-foreground">
@@ -118,10 +118,10 @@ export default function SignUpPage() {
               className="w-full"
               disabled={submitting || !email || !password}
             >
-              {submitting ? "登録中…" : "登録する"}
+              {submitting ? '登録中…' : '登録する'}
             </Button>
             <p className="text-sm text-muted-foreground">
-              すでにアカウントがある場合は{" "}
+              すでにアカウントがある場合は{' '}
               <Link
                 to="/login"
                 state={{ from }}
@@ -134,5 +134,5 @@ export default function SignUpPage() {
         </form>
       </div>
     </div>
-  );
+  )
 }

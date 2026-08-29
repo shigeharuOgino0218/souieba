@@ -1,11 +1,6 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  ArrowUpRight,
-  CircleUserRound,
-  CirclePlus,
-  Share,
-} from 'lucide-react'
+import { ArrowUpRight, CircleUserRound, CirclePlus, Share } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -94,7 +89,7 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <header className="flex justify-between items-center h-16 mb-4 px-4">
+      <header className="mb-4 flex h-16 items-center justify-between px-4">
         <h1>
           <img src={logo} alt="そういえば" className="h-6" />
         </h1>
@@ -104,7 +99,7 @@ export default function HomePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-fit h-fit border-none"
+                className="h-fit w-fit border-none"
                 aria-label="アカウントメニュー"
               />
             }
@@ -129,7 +124,7 @@ export default function HomePage() {
                 className="h-12 gap-3 text-base"
                 render={<Link to="/settings" />}
               >
-                <CircleUserRound data-icon="inline" className='size-5' />
+                <CircleUserRound data-icon="inline" className="size-5" />
                 アカウント設定
                 <ArrowUpRight className="ml-auto text-muted-foreground" />
               </Button>
@@ -138,7 +133,7 @@ export default function HomePage() {
                 render={
                   <Button
                     variant="destructive"
-                    className="w-fit mt-4"
+                    className="mt-4 w-fit"
                     onClick={() => void signOut()}
                   />
                 }
@@ -160,13 +155,13 @@ export default function HomePage() {
         </div>
       ) : (
         <Tabs value={activeId} onValueChange={(v) => setActiveId(v as string)}>
-          <div className="flex snap-x snap-mandatory items-stretch gap-2 overflow-x-auto overflow-y-hidden px-4 scroll-pl-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex snap-x snap-mandatory scroll-pl-4 [scrollbar-width:none] items-stretch gap-2 overflow-x-auto overflow-y-hidden px-4 [&::-webkit-scrollbar]:hidden">
             <TabsList className="gap-2 rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-auto">
               {lists.map((list) => (
                 <TabsTrigger
                   key={list.id}
                   value={list.id}
-                  className="group/tab h-auto w-[min(180px,42vw)] flex-none snap-start flex-col items-start justify-between gap-3 rounded-xl bg-muted p-3 text-foreground data-active:bg-primary data-active:text-primary-foreground dark:text-foreground dark:data-active:bg-primary dark:data-active:text-primary-foreground"
+                  className="group/tab h-auto w-[min(180px,42vw)] flex-none snap-start flex-col items-start justify-between gap-3 rounded-xl bg-muted p-3 text-foreground dark:text-foreground data-active:bg-primary data-active:text-primary-foreground dark:data-active:bg-primary dark:data-active:text-primary-foreground"
                 >
                   <span className="max-w-full truncate font-bold">
                     {list.name}
@@ -184,11 +179,13 @@ export default function HomePage() {
             </TabsList>
             <Button
               variant="secondary"
-              className="h-auto w-[min(180px,42vw)] grid items-center border-border snap-start rounded-xl p-3"
+              className="grid h-auto w-[min(180px,42vw)] snap-start items-center rounded-xl border-border p-3"
               onClick={() => setDialogOpen(true)}
             >
-              <span className="max-w-full truncate font-bold">買い物リストを追加</span>
-              <CirclePlus className="size-6 mx-auto" />
+              <span className="max-w-full truncate font-bold">
+                買い物リストを追加
+              </span>
+              <CirclePlus className="mx-auto size-6" />
             </Button>
           </div>
           {lists.map((list) => (
@@ -196,7 +193,7 @@ export default function HomePage() {
               <ListEditor
                 listId={list.id}
                 action={
-                  <div className="flex items-center bg-background border rounded-full p-0.5 dark:bg-muted">
+                  <div className="flex items-center rounded-full border bg-background p-0.5 dark:bg-muted">
                     <InviteDrawer
                       listId={list.id}
                       trigger={
@@ -236,7 +233,7 @@ export default function HomePage() {
           if (!open) setNewName('')
         }}
       >
-        <DialogContent className="top-24 translate-y-0 sm:top-1/2 sm:-translate-y-1/2 sm:max-w-md">
+        <DialogContent className="top-24 translate-y-0 sm:top-1/2 sm:max-w-md sm:-translate-y-1/2">
           <DialogHeader>
             <DialogTitle>買い物リストを追加</DialogTitle>
           </DialogHeader>
@@ -252,7 +249,10 @@ export default function HomePage() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={creating || newName.trim() === ''}>
+              <Button
+                type="submit"
+                disabled={creating || newName.trim() === ''}
+              >
                 {creating ? '追加中…' : '追加'}
               </Button>
             </DialogFooter>

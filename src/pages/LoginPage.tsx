@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-svh items-center px-8 pb-24">
-      <div className="w-full max-w-sm mx-auto space-y-6">
+      <div className="mx-auto w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-4">
           <img src={logo} alt="そういえば" className="h-8" />
           <p className="text-sm text-muted-foreground">

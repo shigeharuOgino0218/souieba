@@ -83,7 +83,9 @@ export default function ListPage() {
         {listLoading ? (
           <Skeleton className="h-6 w-32 flex-1" />
         ) : (
-          <h1 className="flex-1 truncate text-lg font-semibold">{list!.name}</h1>
+          <h1 className="flex-1 truncate text-lg font-semibold">
+            {list!.name}
+          </h1>
         )}
         <InviteDrawer listId={listId!} />
         {isOwner && (
@@ -102,7 +104,9 @@ export default function ListPage() {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>「{list!.name}」を削除しますか?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  「{list!.name}」を削除しますか?
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   リスト内のアイテム・お店・メンバー情報もすべて削除されます。この操作は取り消せません。
                 </AlertDialogDescription>

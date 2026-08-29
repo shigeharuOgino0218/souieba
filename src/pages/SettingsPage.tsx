@@ -1,66 +1,66 @@
-import { useEffect, useState, type SubmitEvent } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
+import { useMyProfile } from '@/hooks/useMyProfile'
 import {
   AVATAR_COLORS,
   AVATAR_ICONS,
   DEFAULT_AVATAR_COLOR,
   DEFAULT_AVATAR_ICON,
-} from "@/lib/avatars";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { UserAvatar } from "@/components/UserAvatar";
-import { Separator } from "@/components/ui/separator";
-import { PushToggle } from "@/components/PushToggle";
+} from '@/lib/avatars'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { UserAvatar } from '@/components/UserAvatar'
+import { Separator } from '@/components/ui/separator'
+import { PushToggle } from '@/components/PushToggle'
 
 export default function SettingsPage() {
-  const { session } = useAuth();
-  const { profile, loading, refresh } = useMyProfile();
-  const [displayName, setDisplayName] = useState("");
-  const [avatarIcon, setAvatarIcon] = useState(DEFAULT_AVATAR_ICON);
-  const [avatarColor, setAvatarColor] = useState(DEFAULT_AVATAR_COLOR);
-  const [saving, setSaving] = useState(false);
+  const { session } = useAuth()
+  const { profile, loading, refresh } = useMyProfile()
+  const [displayName, setDisplayName] = useState('')
+  const [avatarIcon, setAvatarIcon] = useState(DEFAULT_AVATAR_ICON)
+  const [avatarColor, setAvatarColor] = useState(DEFAULT_AVATAR_COLOR)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!profile) return;
-    setDisplayName(profile.display_name);
-    setAvatarIcon(profile.avatar_icon || DEFAULT_AVATAR_ICON);
-    setAvatarColor(profile.avatar_color || DEFAULT_AVATAR_COLOR);
-  }, [profile]);
+    if (!profile) return
+    setDisplayName(profile.display_name)
+    setAvatarIcon(profile.avatar_icon || DEFAULT_AVATAR_ICON)
+    setAvatarColor(profile.avatar_color || DEFAULT_AVATAR_COLOR)
+  }, [profile])
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!session) return;
-    const name = displayName.trim();
-    if (!name) return;
-    setSaving(true);
+    e.preventDefault()
+    if (!session) return
+    const name = displayName.trim()
+    if (!name) return
+    setSaving(true)
     const { error } = await supabase
-      .from("profiles")
+      .from('profiles')
       .update({
         display_name: name,
         avatar_icon: avatarIcon,
         avatar_color: avatarColor,
       })
-      .eq("id", session.user.id);
-    setSaving(false);
+      .eq('id', session.user.id)
+    setSaving(false)
     if (error) {
-      toast.error("保存に失敗しました");
-      return;
+      toast.error('保存に失敗しました')
+      return
     }
-    toast.success("プロフィールを保存しました");
-    void refresh();
-  };
+    toast.success('プロフィールを保存しました')
+    void refresh()
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:p-6">
-      <header className="flex items-center gap-2 h-16 mb-4">
+      <header className="mb-4 flex h-16 items-center gap-2">
         <Button
           variant="secondary"
           size="icon-lg"
@@ -92,9 +92,9 @@ export default function SettingsPage() {
                     aria-pressed={avatarIcon === key}
                     onClick={() => setAvatarIcon(key)}
                     className={cn(
-                      "flex aspect-square items-center justify-center rounded-full border text-muted-foreground hover:bg-muted",
+                      'flex aspect-square items-center justify-center rounded-full border text-muted-foreground hover:bg-muted',
                       avatarIcon === key &&
-                        "border-primary text-foreground ring-1 ring-primary",
+                        'border-primary text-foreground ring-1 ring-primary',
                     )}
                   >
                     <Icon className="size-4" />
@@ -113,15 +113,15 @@ export default function SettingsPage() {
                     aria-pressed={avatarColor === key}
                     onClick={() => setAvatarColor(key)}
                     className={cn(
-                      "flex aspect-square justify-end overflow-hidden rounded-full",
+                      'flex aspect-square justify-end overflow-hidden rounded-full',
                       color.bg,
                       color.text,
                       `border-2 border-${key}-200`,
                       avatarColor === key &&
-                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                        'ring-2 ring-primary ring-offset-2 ring-offset-background',
                     )}
                   >
-                    <span className="w-1/2 h-full bg-current" />
+                    <span className="h-full w-1/2 bg-current" />
                   </button>
                 ))}
               </div>
@@ -153,8 +153,12 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            <Button type="submit" size="lg" disabled={saving || displayName.trim() === ""}>
-              {saving ? "保存中…" : "保存"}
+            <Button
+              type="submit"
+              size="lg"
+              disabled={saving || displayName.trim() === ''}
+            >
+              {saving ? '保存中…' : '保存'}
             </Button>
           </form>
 
@@ -164,5 +168,5 @@ export default function SettingsPage() {
         </>
       )}
     </div>
-  );
+  )
 }

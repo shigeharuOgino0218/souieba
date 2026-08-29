@@ -35,7 +35,7 @@ export function ItemRow({
     : null
 
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2 overflow-hidden">
+    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 overflow-hidden py-2">
       <Checkbox
         checked={item.checked}
         onCheckedChange={(checked) => onToggle(item.id, checked === true)}

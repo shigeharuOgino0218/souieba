@@ -1,7 +1,7 @@
-import { useState, type MouseEvent, type SubmitEvent } from "react";
-import { Pencil, Trash2, CircleMinus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, type MouseEvent, type SubmitEvent } from 'react'
+import { Pencil, Trash2, CircleMinus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Drawer,
   DrawerContent,
@@ -9,20 +9,20 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "./ui/label";
-import type { Store } from "@/lib/types";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/drawer'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from './ui/label'
+import type { Store } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 type Props = {
-  stores: Store[];
-  selected: Store | null;
-  onSelect: (storeId: string | null) => void;
-  onAddStore: (name: string) => string;
-  onRenameStore: (storeId: string, name: string) => void;
-  onDeleteStore: (storeId: string) => void;
-};
+  stores: Store[]
+  selected: Store | null
+  onSelect: (storeId: string | null) => void
+  onAddStore: (name: string) => string
+  onRenameStore: (storeId: string, name: string) => void
+  onDeleteStore: (storeId: string) => void
+}
 
 export function StorePicker({
   stores,
@@ -32,48 +32,48 @@ export function StorePicker({
   onRenameStore,
   onDeleteStore,
 }: Props) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [storeToEdit, setStoreToEdit] = useState<Store | null>(null);
-  const [editName, setEditName] = useState("");
-  const [storeToDelete, setStoreToDelete] = useState<Store | null>(null);
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [storeToEdit, setStoreToEdit] = useState<Store | null>(null)
+  const [editName, setEditName] = useState('')
+  const [storeToDelete, setStoreToDelete] = useState<Store | null>(null)
 
-  const trimmed = search.trim();
-  const canCreate = trimmed !== "" && !stores.some((s) => s.name === trimmed);
+  const trimmed = search.trim()
+  const canCreate = trimmed !== '' && !stores.some((s) => s.name === trimmed)
   const filtered =
-    trimmed === ""
+    trimmed === ''
       ? stores
       : stores.filter((s) =>
           s.name.toLowerCase().includes(trimmed.toLowerCase()),
-        );
+        )
 
   const close = () => {
-    setOpen(false);
-    setSearch("");
-  };
+    setOpen(false)
+    setSearch('')
+  }
 
   const handleCreate = () => {
-    const id = onAddStore(trimmed);
-    onSelect(id);
-    close();
-  };
+    const id = onAddStore(trimmed)
+    onSelect(id)
+    close()
+  }
 
   const handleRename = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!storeToEdit) return;
-    const name = editName.trim();
-    if (!name) return;
-    if (name !== storeToEdit.name) onRenameStore(storeToEdit.id, name);
-    setStoreToEdit(null);
-  };
+    e.preventDefault()
+    if (!storeToEdit) return
+    const name = editName.trim()
+    if (!name) return
+    if (name !== storeToEdit.name) onRenameStore(storeToEdit.id, name)
+    setStoreToEdit(null)
+  }
 
   return (
     <>
       <Drawer
         open={open}
         onOpenChange={(next) => {
-          setOpen(next);
-          if (!next) setSearch("");
+          setOpen(next)
+          if (!next) setSearch('')
         }}
         showSwipeHandle={true}
       >
@@ -82,11 +82,16 @@ export function StorePicker({
             <Button
               variant="outline"
               size="sm"
-              className={cn("text-xs", selected ? "!bg-secondary" : "border-dashed text-muted-foreground")}
+              className={cn(
+                'text-xs',
+                selected
+                  ? '!bg-secondary'
+                  : 'border-dashed text-muted-foreground',
+              )}
             />
           }
         >
-          {selected ? `${selected.name}` : "お店未選択"}
+          {selected ? `${selected.name}` : 'お店未選択'}
         </DrawerTrigger>
         <DrawerContent initialFocus={false}>
           <DrawerHeader>
@@ -98,11 +103,11 @@ export function StorePicker({
                 placeholder="お店を追加 or 検索"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="leading-none flex-1"
+                className="flex-1 leading-none"
               />
               <Button
                 size="lg"
-                variant={canCreate ? "default" : "outline"}
+                variant={canCreate ? 'default' : 'outline'}
                 onClick={handleCreate}
                 disabled={!canCreate}
                 className="shrink-0"
@@ -114,17 +119,17 @@ export function StorePicker({
               <p className="py-6 text-xs">お店が見つかりません</p>
             ) : (
               <RadioGroup
-                value={selected?.id ?? ""}
+                value={selected?.id ?? ''}
                 onValueChange={(value) => {
-                  onSelect(value as string);
-                  close();
+                  onSelect(value as string)
+                  close()
                 }}
                 className="grid grid-cols-2 gap-2"
               >
                 {filtered.map((store) => (
                   <div
                     key={store.id}
-                    className="grid grid-cols-[1fr_auto] items-center bg-muted rounded-full p-1 ring-2 ring-transparent has-data-checked:ring-primary"
+                    className="grid grid-cols-[1fr_auto] items-center rounded-full bg-muted p-1 ring-2 ring-transparent has-data-checked:ring-primary"
                   >
                     <div className="flex items-center gap-2 px-2.5">
                       <RadioGroupItem
@@ -132,7 +137,7 @@ export function StorePicker({
                         id={store.id}
                         className="hidden"
                       />
-                      <Label htmlFor={store.id} className="text-xs flex-1">
+                      <Label htmlFor={store.id} className="flex-1 text-xs">
                         {store.name}
                       </Label>
                     </div>
@@ -141,10 +146,10 @@ export function StorePicker({
                       size="icon-sm"
                       aria-label={`${store.name}を編集`}
                       onClick={(e: MouseEvent) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setStoreToEdit(store);
-                        setEditName(store.name);
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setStoreToEdit(store)
+                        setEditName(store.name)
                       }}
                     >
                       <Pencil className="size-3.5" />
@@ -158,8 +163,8 @@ export function StorePicker({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  onSelect(null);
-                  close();
+                  onSelect(null)
+                  close()
                 }}
                 className="w-fit"
               >
@@ -173,7 +178,7 @@ export function StorePicker({
           <Drawer
             open={!!storeToEdit}
             onOpenChange={(next) => {
-              if (!next) setStoreToEdit(null);
+              if (!next) setStoreToEdit(null)
             }}
             showSwipeHandle={true}
           >
@@ -190,13 +195,13 @@ export function StorePicker({
                     placeholder="お店の名前"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="leading-none flex-1"
+                    className="flex-1 leading-none"
                   />
                   <Button
                     type="submit"
                     size="lg"
-                    variant={editName.trim() !== "" ? "default" : "outline"}
-                    disabled={editName.trim() === ""}
+                    variant={editName.trim() !== '' ? 'default' : 'outline'}
+                    disabled={editName.trim() === ''}
                     className="shrink-0"
                   >
                     保存
@@ -206,7 +211,7 @@ export function StorePicker({
                   type="button"
                   variant="destructive"
                   size="sm"
-                  className="w-fit mx-auto"
+                  className="mx-auto w-fit"
                   onClick={() => setStoreToDelete(storeToEdit)}
                 >
                   <Trash2 data-icon="inline-start" />
@@ -217,7 +222,7 @@ export function StorePicker({
               <Drawer
                 open={!!storeToDelete}
                 onOpenChange={(next) => {
-                  if (!next) setStoreToDelete(null);
+                  if (!next) setStoreToDelete(null)
                 }}
                 showSwipeHandle={true}
               >
@@ -230,14 +235,14 @@ export function StorePicker({
                       このお店を選択しているアイテムからも外れます。
                     </DrawerDescription>
                   </DrawerHeader>
-                  <div className="flex flex-col gap-2 w-64 mx-auto px-4">
+                  <div className="mx-auto flex w-64 flex-col gap-2 px-4">
                     <Button
                       variant="destructive"
                       size="lg"
                       onClick={() => {
-                        if (storeToDelete) onDeleteStore(storeToDelete.id);
-                        setStoreToDelete(null);
-                        setStoreToEdit(null);
+                        if (storeToDelete) onDeleteStore(storeToDelete.id)
+                        setStoreToDelete(null)
+                        setStoreToEdit(null)
                       }}
                     >
                       削除
@@ -257,5 +262,5 @@ export function StorePicker({
         </DrawerContent>
       </Drawer>
     </>
-  );
+  )
 }

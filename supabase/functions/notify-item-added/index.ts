@@ -12,8 +12,9 @@ const vapidKeys = await webpush.importVapidKeys(
   { extractable: false },
 )
 const appServer = await webpush.ApplicationServer.new({
-  contactInformation: Deno.env.get('VAPID_SUBJE∏CT') ?? 'mailto:admin@example.com',
-  vapidKeys
+  contactInformation:
+    Deno.env.get('VAPID_SUBJE∏CT') ?? 'mailto:admin@example.com',
+  vapidKeys,
 })
 
 const admin = createClient(
@@ -43,9 +44,11 @@ function buildBody(actor: string, names: string[]): string {
 
 // DELAY_MS が長いと呼び出し元(pg_net)がタイムアウトするので、応答は即返して裏で送る
 function runInBackground(task: Promise<unknown>) {
-  const runtime = (globalThis as {
-    EdgeRuntime?: { waitUntil(promise: Promise<unknown>): void }
-  }).EdgeRuntime
+  const runtime = (
+    globalThis as {
+      EdgeRuntime?: { waitUntil(promise: Promise<unknown>): void }
+    }
+  ).EdgeRuntime
   if (runtime) runtime.waitUntil(task)
   else void task
 }
@@ -56,8 +59,16 @@ async function notify(listId: string, actorId: string) {
   const since = new Date(Date.now() - WINDOW_SEC * 1000).toISOString()
   const [listRes, actorRes, membersRes, eventsRes] = await Promise.all([
     admin.from('lists').select('name').eq('id', listId).maybeSingle(),
-    admin.from('profiles').select('display_name').eq('id', actorId).maybeSingle(),
-    admin.from('list_members').select('user_id').eq('list_id', listId).neq('user_id', actorId),
+    admin
+      .from('profiles')
+      .select('display_name')
+      .eq('id', actorId)
+      .maybeSingle(),
+    admin
+      .from('list_members')
+      .select('user_id')
+      .eq('list_id', listId)
+      .neq('user_id', actorId),
     admin
       .from('push_events')
       .select('item_id, created_at, item:items(name)')
@@ -98,7 +109,10 @@ async function notify(listId: string, actorId: string) {
     (subs ?? []).map(async (sub) => {
       try {
         await appServer
-          .subscribe({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } })
+          .subscribe({
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+          })
           .pushTextMessage(payload, {
             ttl: 3600,
             urgency: webpush.Urgency.Normal,
@@ -106,7 +120,8 @@ async function notify(listId: string, actorId: string) {
             topic: String(listId).replaceAll('-', '').slice(0, 32),
           })
       } catch (err) {
-        const status = err instanceof webpush.PushMessageError ? err.response.status : 0
+        const status =
+          err instanceof webpush.PushMessageError ? err.response.status : 0
         if (status === 404 || status === 410) gone.push(sub.endpoint)
         else console.error('push failed', sub.endpoint, String(err))
       }
@@ -130,16 +145,21 @@ async function notify(listId: string, actorId: string) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method !== 'POST') return new Response('method not allowed', { status: 405 })
+  if (req.method !== 'POST')
+    return new Response('method not allowed', { status: 405 })
   if (!SHARED_SECRET || req.headers.get('x-notify-secret') !== SHARED_SECRET) {
     return new Response('forbidden', { status: 403 })
   }
 
-  const { list_id: listId, actor_id: actorId } = await req.json().catch(() => ({}))
+  const { list_id: listId, actor_id: actorId } = await req
+    .json()
+    .catch(() => ({}))
   if (!listId || !actorId) return new Response('bad request', { status: 400 })
 
   runInBackground(
-    notify(listId, actorId).catch((err) => console.error('notify failed', String(err))),
+    notify(listId, actorId).catch((err) =>
+      console.error('notify failed', String(err)),
+    ),
   )
   return Response.json({ accepted: true }, { status: 202 })
 })
