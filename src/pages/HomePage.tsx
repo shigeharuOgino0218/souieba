@@ -52,7 +52,7 @@ export default function HomePage() {
       .order('created_at')
       .then(({ data, error }) => {
         if (error) toast.error('リストの取得に失敗しました')
-        const fetched = (data as List[]) ?? []
+        const fetched = data ?? []
         setLists(fetched)
         // 最後に編集していたリストのタブを選択した状態で表示する
         const lastId = localStorage.getItem(LAST_LIST_KEY)
@@ -80,9 +80,8 @@ export default function HomePage() {
       toast.error('リストの作成に失敗しました')
       return
     }
-    const created = data as List
-    setLists((prev) => [...prev, created])
-    setActiveId(created.id)
+    setLists((prev) => [...prev, data])
+    setActiveId(data.id)
     setDialogOpen(false)
     setNewName('')
   }

@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
-    "db:types": "supabase gen types typescript --local > src/lib/database.types.ts"
+    "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts",
+    "db:push": "supabase db push",
+    "db:migrate": "bun run db:push && bun run db:types"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

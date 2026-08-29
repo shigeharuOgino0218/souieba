@@ -25,12 +25,13 @@ export default function InvitePage() {
     supabase
       .rpc('get_invite_info', { invite_token: token })
       .then(({ data }) => {
-        setInfo((data as InviteInfo[] | null)?.[0] ?? null)
+        setInfo(data?.[0] ?? null)
         setLoading(false)
       })
   }, [token])
 
   const handleJoin = async () => {
+    if (!token) return
     setJoining(true)
     const { data, error } = await supabase.rpc('accept_invite', {
       invite_token: token,
@@ -43,7 +44,7 @@ export default function InvitePage() {
       return
     }
     toast.success('リストに参加しました')
-    navigate(`/lists/${data as string}`, { replace: true })
+    navigate(`/lists/${data}`, { replace: true })
   }
 
   return (

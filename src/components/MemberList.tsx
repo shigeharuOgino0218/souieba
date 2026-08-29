@@ -8,23 +8,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { UserAvatar } from '@/components/UserAvatar'
+import type { ListMember } from '@/lib/types'
 
 type Member = {
   user_id: string
-  role: 'owner' | 'member'
+  role: ListMember['role']
   display_name: string
   avatar_icon: string | null
   avatar_color: string | null
-}
-
-type MemberRow = {
-  user_id: string
-  role: 'owner' | 'member'
-  profiles: {
-    display_name: string
-    avatar_icon: string | null
-    avatar_color: string | null
-  } | null
 }
 
 const MAX_VISIBLE = 5
@@ -51,7 +42,7 @@ export function MemberList({
       .eq('list_id', listId)
       .order('created_at')
     setMembers(
-      ((data as MemberRow[] | null) ?? []).map((row) => ({
+      (data ?? []).map((row) => ({
         user_id: row.user_id,
         role: row.role,
         display_name: row.profiles?.display_name || '名無し',
