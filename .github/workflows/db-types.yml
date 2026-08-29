@@ -1,0 +1,24 @@
+name: DB types
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+
+jobs:
+  types-regenerated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: マイグレーションを変更したら型の再生成を必須にする
+        run: |
+          base="origin/${{ github.base_ref }}"
+          if git diff --name-only "$base"...HEAD | grep -qx 'src/lib/database.types.ts'; then
+            echo "src/lib/database.types.ts は再生成済みです"
+          else
+            echo "::error::supabase/migrations を変更しています。bun run db:migrate で src/lib/database.types.ts を再生成してコミットしてください"
+            exit 1
+          fi
