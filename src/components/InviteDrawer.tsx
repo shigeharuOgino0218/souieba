@@ -40,9 +40,7 @@ export function InviteDrawer({
       toast.error('招待URLの作成に失敗しました')
       return
     }
-    setUrl(
-      `${window.location.origin}/invite/${(data as { token: string }).token}`,
-    )
+    setUrl(`${window.location.origin}/invite/${data.token}`)
   }
 
   const handleCopy = async () => {

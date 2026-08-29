@@ -7,3 +7,4 @@ supabase/functions/node_modules
 supabase/functions/deno.lock
 supabase/.temp
 .claude
+src/lib/database.types.ts

@@ -52,8 +52,8 @@ export function useListData(listId: string, userId: string) {
       if (cancelled) return
       if (itemsRes.error || storesRes.error)
         toast.error('リストの読み込みに失敗しました')
-      setItems((itemsRes.data as Item[]) ?? [])
-      setStores((storesRes.data as Store[]) ?? [])
+      setItems(itemsRes.data ?? [])
+      setStores(storesRes.data ?? [])
       setLoading(false)
     }
     void load()

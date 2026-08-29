@@ -37,7 +37,7 @@ export default function ListPage() {
       .eq('id', listId)
       .maybeSingle()
       .then(({ data }) => {
-        setList((data as List | null) ?? null)
+        setList(data)
         setListLoading(false)
       })
   }, [listId])

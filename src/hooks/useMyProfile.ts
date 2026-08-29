@@ -15,7 +15,7 @@ export function useMyProfile() {
       .select('*')
       .eq('id', session.user.id)
       .maybeSingle()
-    setProfile((data as Profile | null) ?? null)
+    setProfile(data)
     setLoading(false)
   }, [session])
 
