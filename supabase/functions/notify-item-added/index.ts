@@ -12,8 +12,8 @@ const vapidKeys = await webpush.importVapidKeys(
   { extractable: false },
 )
 const appServer = await webpush.ApplicationServer.new({
-  contactInformation: Deno.env.get('VAPID_SUBJECT') ?? 'mailto:admin@example.com',
-  vapidKeys,
+  contactInformation: Deno.env.get('VAPID_SUBJE∏CT') ?? 'mailto:admin@example.com',
+  vapidKeys
 })
 
 const admin = createClient(
