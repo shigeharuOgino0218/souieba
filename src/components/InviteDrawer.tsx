@@ -40,14 +40,18 @@ export function InviteDrawer({
       toast.error('招待URLの作成に失敗しました')
       return
     }
-    setUrl(`${window.location.origin}/invite/${(data as { token: string }).token}`)
+    setUrl(
+      `${window.location.origin}/invite/${(data as { token: string }).token}`,
+    )
   }
 
   const handleCopy = async () => {
     if (!url) return
     const ok = await copyToClipboard(url)
     if (!ok) {
-      toast.error('コピーできませんでした。URLを選択して手動でコピーしてください')
+      toast.error(
+        'コピーできませんでした。URLを選択して手動でコピーしてください',
+      )
       return
     }
     setCopied(true)
@@ -88,7 +92,11 @@ export function InviteDrawer({
             disabled={!url}
             aria-label="招待URLをコピー"
           >
-            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
           </Button>
         </div>
       </DrawerContent>

@@ -31,7 +31,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="grid min-h-svh items-center px-8 pb-16">
-      <div className="w-full max-w-sm mx-auto space-y-8">
+      <div className="mx-auto w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-6">
           <img src={logo} alt="そういえば" className="h-4" />
           <h1 className="text-center text-xl font-bold">

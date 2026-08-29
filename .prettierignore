@@ -1,0 +1,9 @@
+node_modules
+dist
+dev-dist
+public
+bun.lock
+supabase/functions/node_modules
+supabase/functions/deno.lock
+supabase/.temp
+.claude

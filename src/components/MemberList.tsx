@@ -45,7 +45,9 @@ export function MemberList({
   const load = useCallback(async () => {
     const { data } = await supabase
       .from('list_members')
-      .select('user_id, role, profiles(display_name, avatar_icon, avatar_color)')
+      .select(
+        'user_id, role, profiles(display_name, avatar_icon, avatar_color)',
+      )
       .eq('list_id', listId)
       .order('created_at')
     setMembers(

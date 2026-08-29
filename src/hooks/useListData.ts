@@ -38,18 +38,29 @@ export function useListData(listId: string, userId: string) {
     const load = async () => {
       setLoading(true)
       const [itemsRes, storesRes] = await Promise.all([
-        supabase.from('items').select('*').eq('list_id', listId).order('position'),
-        supabase.from('stores').select('*').eq('list_id', listId).order('created_at'),
+        supabase
+          .from('items')
+          .select('*')
+          .eq('list_id', listId)
+          .order('position'),
+        supabase
+          .from('stores')
+          .select('*')
+          .eq('list_id', listId)
+          .order('created_at'),
       ])
       if (cancelled) return
-      if (itemsRes.error || storesRes.error) toast.error('リストの読み込みに失敗しました')
+      if (itemsRes.error || storesRes.error)
+        toast.error('リストの読み込みに失敗しました')
       setItems((itemsRes.data as Item[]) ?? [])
       setStores((storesRes.data as Store[]) ?? [])
       setLoading(false)
     }
     void load()
 
-    const handleItemChange = (payload: RealtimePostgresChangesPayload<Item>) => {
+    const handleItemChange = (
+      payload: RealtimePostgresChangesPayload<Item>,
+    ) => {
       if (payload.eventType === 'INSERT') {
         setItems((prev) => sortByPosition(upsertById(prev, payload.new)))
       } else if (payload.eventType === 'UPDATE') {
@@ -62,7 +73,9 @@ export function useListData(listId: string, userId: string) {
       }
     }
 
-    const handleStoreChange = (payload: RealtimePostgresChangesPayload<Store>) => {
+    const handleStoreChange = (
+      payload: RealtimePostgresChangesPayload<Store>,
+    ) => {
       if (payload.eventType === 'DELETE') {
         const oldId = (payload.old as Partial<Store>).id
         if (oldId) setStores((prev) => prev.filter((s) => s.id !== oldId))
@@ -75,12 +88,22 @@ export function useListData(listId: string, userId: string) {
       .channel(`list-${listId}`)
       .on<Item>(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'items', filter: `list_id=eq.${listId}` },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'items',
+          filter: `list_id=eq.${listId}`,
+        },
         handleItemChange,
       )
       .on<Store>(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'stores', filter: `list_id=eq.${listId}` },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stores',
+          filter: `list_id=eq.${listId}`,
+        },
         handleStoreChange,
       )
       .subscribe()
@@ -101,7 +124,9 @@ export function useListData(listId: string, userId: string) {
         const idx = sorted.findIndex((i) => i.id === afterId)
         const cur = sorted[idx]
         const next = sorted[idx + 1]
-        position = next ? (cur.position + next.position) / 2 : (cur?.position ?? 0) + 1
+        position = next
+          ? (cur.position + next.position) / 2
+          : (cur?.position ?? 0) + 1
       } else {
         position = (sorted.at(-1)?.position ?? 0) + 1
       }
@@ -163,7 +188,9 @@ export function useListData(listId: string, userId: string) {
   }, [])
 
   const setItemStore = useCallback((id: string, storeId: string | null) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, store_id: storeId } : i)))
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, store_id: storeId } : i)),
+    )
     supabase
       .from('items')
       .update({ store_id: storeId })

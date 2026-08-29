@@ -1,11 +1,15 @@
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { usePushSubscription, type PushStatus } from '@/hooks/usePushSubscription'
+import {
+  usePushSubscription,
+  type PushStatus,
+} from '@/hooks/usePushSubscription'
 
 const NOTES: Partial<Record<PushStatus, string>> = {
   'needs-install':
     'iPhone / iPad では、Safari の共有ボタンから「ホーム画面に追加」してアプリとして開くと通知を受け取れます。',
-  denied: 'ブラウザの設定で通知がブロックされています。設定から許可してください。',
+  denied:
+    'ブラウザの設定で通知がブロックされています。設定から許可してください。',
 }
 
 const DEFAULT_NOTE =
@@ -17,7 +21,10 @@ export function PushToggle() {
   if (status === 'unconfigured' || status === 'unsupported') return null
 
   const disabled =
-    busy || status === 'loading' || status === 'needs-install' || status === 'denied'
+    busy ||
+    status === 'loading' ||
+    status === 'needs-install' ||
+    status === 'denied'
 
   return (
     <div className="space-y-2">
@@ -30,7 +37,9 @@ export function PushToggle() {
           onCheckedChange={(checked) => void (checked ? enable() : disable())}
         />
       </div>
-      <p className="text-xs text-muted-foreground">{NOTES[status] ?? DEFAULT_NOTE}</p>
+      <p className="text-xs text-muted-foreground">
+        {NOTES[status] ?? DEFAULT_NOTE}
+      </p>
     </div>
   )
 }

@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#863bff" />
     <meta name="description" content="買い物リストを共有できるアプリ" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -13,14 +16,14 @@
     <meta name="apple-mobile-web-app-title" content="SOUIEBA!" />
     <title>SOUIEBA! - 買い物リスト共有</title>
     <script>
-      const query = matchMedia("(prefers-color-scheme: dark)");
+      const query = matchMedia('(prefers-color-scheme: dark)')
       const applyTheme = () => {
-        const stored = localStorage.getItem("theme");
-        const dark = stored === "dark" || (stored !== "light" && query.matches);
-        document.documentElement.classList.toggle("dark", dark);
-      };
-      applyTheme();
-      query.addEventListener("change", applyTheme);
+        const stored = localStorage.getItem('theme')
+        const dark = stored === 'dark' || (stored !== 'light' && query.matches)
+        document.documentElement.classList.toggle('dark', dark)
+      }
+      applyTheme()
+      query.addEventListener('change', applyTheme)
     </script>
   </head>
   <body>

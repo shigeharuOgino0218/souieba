@@ -37,7 +37,9 @@ export default function InvitePage() {
     })
     setJoining(false)
     if (error || !data) {
-      toast.error('参加に失敗しました。招待が無効か期限切れの可能性があります。')
+      toast.error(
+        '参加に失敗しました。招待が無効か期限切れの可能性があります。',
+      )
       return
     }
     toast.success('リストに参加しました')
@@ -61,7 +63,11 @@ export default function InvitePage() {
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button variant="outline" className="w-full" render={<Link to="/" />}>
+              <Button
+                variant="outline"
+                className="w-full"
+                render={<Link to="/" />}
+              >
                 リスト一覧へ
               </Button>
             </CardFooter>
@@ -71,11 +77,16 @@ export default function InvitePage() {
             <CardHeader>
               <CardTitle>招待の有効期限が切れています</CardTitle>
               <CardDescription>
-                「{info.list_name}」のメンバーに新しい招待URLを発行してもらってください。
+                「{info.list_name}
+                」のメンバーに新しい招待URLを発行してもらってください。
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button variant="outline" className="w-full" render={<Link to="/" />}>
+              <Button
+                variant="outline"
+                className="w-full"
+                render={<Link to="/" />}
+              >
                 リスト一覧へ
               </Button>
             </CardFooter>
@@ -96,7 +107,11 @@ export default function InvitePage() {
               >
                 {joining ? '参加中…' : '参加する'}
               </Button>
-              <Button variant="ghost" className="w-full" render={<Link to="/" />}>
+              <Button
+                variant="ghost"
+                className="w-full"
+                render={<Link to="/" />}
+              >
                 参加しない
               </Button>
             </CardFooter>

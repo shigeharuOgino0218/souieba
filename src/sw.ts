@@ -25,7 +25,10 @@ registerRoute(
   new CacheFirst({
     cacheName: 'fonts',
     plugins: [
-      new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 }),
+      new ExpirationPlugin({
+        maxEntries: 200,
+        maxAgeSeconds: 60 * 60 * 24 * 365,
+      }),
     ],
   }),
   'GET',
@@ -39,7 +42,10 @@ type PushPayload = {
 }
 
 async function isViewing(url: string): Promise<boolean> {
-  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+  const clients = await self.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true,
+  })
   return clients.some((client) => {
     if (client.visibilityState !== 'visible') return false
     // HomePage は全リストを同時に表示するのでルートも「見ている」扱いにする
@@ -77,12 +83,16 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = (event.notification.data as { url?: string } | undefined)?.url ?? '/'
+  const url =
+    (event.notification.data as { url?: string } | undefined)?.url ?? '/'
   const target = new URL(url, self.location.origin).href
 
   event.waitUntil(
     (async () => {
-      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      const clients = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      })
       const client = clients[0]
       if (client) {
         await client.focus()

@@ -1,27 +1,21 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { CirclePlus } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useListData } from "@/hooks/useListData";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ItemRow } from "@/components/ItemRow";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { CirclePlus } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useListData } from '@/hooks/useListData'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ItemRow } from '@/components/ItemRow'
 
-export const LAST_LIST_KEY = "souieba:lastListId";
+export const LAST_LIST_KEY = 'souieba:lastListId'
 
 export function ListEditor({
   listId,
   action,
 }: {
-  listId: string;
-  action?: ReactNode;
+  listId: string
+  action?: ReactNode
 }) {
-  const { session } = useAuth();
+  const { session } = useAuth()
   const {
     items,
     stores,
@@ -34,41 +28,41 @@ export function ListEditor({
     addStore,
     renameStore,
     deleteStore,
-  } = useListData(listId, session!.user.id);
+  } = useListData(listId, session!.user.id)
 
   useEffect(() => {
-    localStorage.setItem(LAST_LIST_KEY, listId);
-  }, [listId]);
+    localStorage.setItem(LAST_LIST_KEY, listId)
+  }, [listId])
 
-  const inputRefs = useRef(new Map<string, HTMLInputElement>());
+  const inputRefs = useRef(new Map<string, HTMLInputElement>())
   const registerInput = useCallback(
     (id: string, el: HTMLInputElement | null) => {
-      if (el) inputRefs.current.set(id, el);
-      else inputRefs.current.delete(id);
+      if (el) inputRefs.current.set(id, el)
+      else inputRefs.current.delete(id)
     },
     [],
-  );
+  )
 
-  const [focusId, setFocusId] = useState<string | null>(null);
+  const [focusId, setFocusId] = useState<string | null>(null)
   useEffect(() => {
-    if (!focusId) return;
-    const el = inputRefs.current.get(focusId);
+    if (!focusId) return
+    const el = inputRefs.current.get(focusId)
     if (el) {
-      el.focus();
-      el.setSelectionRange(el.value.length, el.value.length);
-      setFocusId(null);
+      el.focus()
+      el.setSelectionRange(el.value.length, el.value.length)
+      setFocusId(null)
     }
-  }, [focusId, items]);
+  }, [focusId, items])
 
-  const handleEnter = (id: string) => setFocusId(addItem(id));
-  const handleAdd = () => setFocusId(addItem());
+  const handleEnter = (id: string) => setFocusId(addItem(id))
+  const handleAdd = () => setFocusId(addItem())
 
   const handleBackspaceEmpty = (id: string) => {
-    const idx = items.findIndex((i) => i.id === id);
-    const prev = items[idx - 1];
-    deleteItem(id);
-    if (prev) setFocusId(prev.id);
-  };
+    const idx = items.findIndex((i) => i.id === id)
+    const prev = items[idx - 1]
+    deleteItem(id)
+    if (prev) setFocusId(prev.id)
+  }
 
   if (loading) {
     return (
@@ -77,7 +71,7 @@ export function ListEditor({
         <Skeleton className="h-8 w-full" />
         <Skeleton className="h-8 w-full" />
       </div>
-    );
+    )
   }
 
   return (
@@ -101,7 +95,7 @@ export function ListEditor({
         ))}
       </div>
       {/* <Separator /> */}
-      <div className="fixed bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)))] z-10 flex items-center justify-between w-[calc(100%-2rem)] bg-muted/50 rounded-full translate-y-1/8 p-2 backdrop-blur">
+      <div className="fixed bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)))] z-10 flex w-[calc(100%-2rem)] translate-y-1/8 items-center justify-between rounded-full bg-muted/50 p-2 backdrop-blur">
         <Button
           variant="outline"
           size="lg"
@@ -114,5 +108,5 @@ export function ListEditor({
         {action}
       </div>
     </div>
-  );
+  )
 }

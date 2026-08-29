@@ -11,7 +11,8 @@ export function PushNavigator() {
       if (data?.type === 'navigate' && data.url) navigate(data.url)
     }
     navigator.serviceWorker.addEventListener('message', handleMessage)
-    return () => navigator.serviceWorker.removeEventListener('message', handleMessage)
+    return () =>
+      navigator.serviceWorker.removeEventListener('message', handleMessage)
   }, [navigate])
 
   return null

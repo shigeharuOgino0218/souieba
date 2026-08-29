@@ -1,8 +1,7 @@
 import { supabase } from '@/lib/supabase'
 
 export const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as
-  | string
-  | undefined
+  string | undefined
 
 const SW_READY_TIMEOUT_MS = 5000
 
@@ -21,7 +20,10 @@ function toBase64Url(buffer: ArrayBuffer): string {
 }
 
 // 鍵を差し替えると既存購読のままでは subscribe が InvalidStateError になる
-export function matchesVapidKey(subscription: PushSubscription, key: string): boolean {
+export function matchesVapidKey(
+  subscription: PushSubscription,
+  key: string,
+): boolean {
   const current = subscription.options.applicationServerKey
   return current ? toBase64Url(current) === key.replace(/=+$/, '') : false
 }
@@ -52,7 +54,9 @@ export function isStandalone(): boolean {
 export function swReady(): Promise<ServiceWorkerRegistration | null> {
   return Promise.race([
     navigator.serviceWorker.ready,
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), SW_READY_TIMEOUT_MS)),
+    new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), SW_READY_TIMEOUT_MS),
+    ),
   ])
 }
 
@@ -61,6 +65,9 @@ export async function unsubscribePush(): Promise<void> {
   const registration = await swReady()
   const subscription = await registration?.pushManager.getSubscription()
   if (!subscription) return
-  await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint)
+  await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('endpoint', subscription.endpoint)
   await subscription.unsubscribe()
 }
