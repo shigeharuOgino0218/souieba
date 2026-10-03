@@ -1,8 +1,15 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, CircleUserRound, CirclePlus, Share } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CircleUserRound,
+  CirclePlus,
+  EllipsisVertical,
+  Share,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import type { List } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -31,6 +38,7 @@ import { useMyProfile } from '@/hooks/useMyProfile'
 import { LAST_LIST_KEY, ListEditor } from '@/components/ListEditor'
 import { MemberList } from '@/components/MemberList'
 import { InviteDrawer } from '@/components/InviteDrawer'
+import { ListMenuDrawer } from '@/components/ListMenuDrawer'
 import logo from '@/assets/logo.svg'
 
 const MAX_TAB_AVATARS = 3
@@ -84,6 +92,10 @@ export default function HomePage() {
     setActiveId(data.id)
     setDialogOpen(false)
     setNewName('')
+  }
+
+  const handleRenamed = (id: string, name: string) => {
+    setLists((prev) => prev.map((l) => (l.id === id ? { ...l, name } : l)))
   }
 
   return (
@@ -157,23 +169,47 @@ export default function HomePage() {
           <div className="flex snap-x snap-mandatory scroll-pl-4 [scrollbar-width:none] items-stretch gap-2 overflow-x-auto overflow-y-hidden px-4 [&::-webkit-scrollbar]:hidden">
             <TabsList className="gap-2 rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-auto">
               {lists.map((list) => (
-                <TabsTrigger
+                // メニューのボタンをタブ(button)の中に入れると入れ子になるため、兄弟として右上に重ねる
+                <div
                   key={list.id}
-                  value={list.id}
-                  className="group/tab h-auto w-[min(180px,42vw)] flex-none snap-start flex-col items-start justify-between gap-3 rounded-xl bg-muted p-3 text-foreground dark:text-foreground data-active:bg-primary data-active:text-primary-foreground dark:data-active:bg-primary dark:data-active:text-primary-foreground"
+                  className="relative w-[min(180px,42vw)] flex-none snap-start"
                 >
-                  <span className="max-w-full truncate font-bold">
-                    {list.name}
-                  </span>
-                  <span className="flex min-h-8 items-center">
-                    <MemberList
-                      listId={list.id}
-                      maxVisible={MAX_TAB_AVATARS}
-                      popover={false}
-                      avatarClassName="ring-muted group-data-active/tab:ring-primary"
-                    />
-                  </span>
-                </TabsTrigger>
+                  <TabsTrigger
+                    value={list.id}
+                    className="group/tab h-auto w-full flex-col items-start justify-between gap-3 rounded-xl bg-muted p-3 text-foreground dark:text-foreground data-active:bg-primary data-active:text-primary-foreground dark:data-active:bg-primary dark:data-active:text-primary-foreground"
+                  >
+                    <span className="max-w-full truncate pr-6 font-bold">
+                      {list.name}
+                    </span>
+                    <span className="flex min-h-8 items-center">
+                      <MemberList
+                        listId={list.id}
+                        maxVisible={MAX_TAB_AVATARS}
+                        popover={false}
+                        avatarClassName="ring-muted group-data-active/tab:ring-primary"
+                      />
+                    </span>
+                  </TabsTrigger>
+                  <ListMenuDrawer
+                    list={list}
+                    onRenamed={(name) => handleRenamed(list.id, name)}
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className={cn(
+                          'absolute top-1.5 right-1.5',
+                          list.id === activeId
+                            ? 'text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground aria-expanded:bg-primary-foreground/15 aria-expanded:text-primary-foreground dark:hover:bg-primary-foreground/15'
+                            : 'hover:bg-foreground/10 aria-expanded:bg-foreground/10 dark:hover:bg-foreground/10',
+                        )}
+                        aria-label={`${list.name}のメニュー`}
+                      />
+                    }
+                  >
+                    <EllipsisVertical />
+                  </ListMenuDrawer>
+                </div>
               ))}
             </TabsList>
             <Button
