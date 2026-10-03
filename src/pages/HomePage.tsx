@@ -1,5 +1,5 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowUpRight,
   CircleUserRound,
@@ -11,6 +11,11 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import {
+  pickAfterRemoval,
+  pickInitialListId,
+  readRequestedListId,
+} from '@/lib/lists'
 import type { List } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,7 +57,19 @@ export default function HomePage() {
   const [creating, setCreating] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+  // 通知や招待から来たときに開くリスト。マウント時の location.state だけを使い、以降の変化には追従しない
+  const [requestedId] = useState(() => readRequestedListId(location.state))
 
+  // 再読み込みで指定のタブに戻されないよう、受け取った state は履歴から消す
+  useEffect(() => {
+    if (readRequestedListId(location.state)) {
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [location.state, location.pathname, navigate])
+
+  // 指定されたリスト → 最後に編集していたリスト → 先頭の順で、最初に選ぶタブを決める
   useEffect(() => {
     supabase
       .from('lists')
@@ -61,17 +78,23 @@ export default function HomePage() {
       .then(({ data, error }) => {
         if (error) toast.error('リストの取得に失敗しました')
         const fetched = data ?? []
+        const ids = fetched.map((l) => l.id)
+        if (!error && requestedId && !ids.includes(requestedId)) {
+          toast.error(
+            'リストが見つかりません。削除されたか、アクセス権がない可能性があります。',
+          )
+        }
         setLists(fetched)
-        // 最後に編集していたリストのタブを選択した状態で表示する
-        const lastId = localStorage.getItem(LAST_LIST_KEY)
         setActiveId(
-          lastId && fetched.some((l) => l.id === lastId)
-            ? lastId
-            : (fetched[0]?.id ?? null),
+          pickInitialListId(
+            ids,
+            requestedId,
+            localStorage.getItem(LAST_LIST_KEY),
+          ),
         )
         setLoading(false)
       })
-  }, [])
+  }, [requestedId])
 
   const handleCreate = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -98,9 +121,23 @@ export default function HomePage() {
     setLists((prev) => prev.map((l) => (l.id === id ? { ...l, name } : l)))
   }
 
+  const handleDeleted = (id: string) => {
+    if (localStorage.getItem(LAST_LIST_KEY) === id) {
+      localStorage.removeItem(LAST_LIST_KEY)
+    }
+    setActiveId(
+      pickAfterRemoval(
+        lists.map((l) => l.id),
+        id,
+        activeId,
+      ),
+    )
+    setLists((prev) => prev.filter((l) => l.id !== id))
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
-      <header className="mb-4 flex h-16 items-center justify-between px-4">
+      <header className="mb-2 flex h-16 items-center justify-between px-4">
         <h1>
           <img src={logo} alt="そういえば" className="h-6" />
         </h1>
@@ -185,7 +222,6 @@ export default function HomePage() {
                       <MemberList
                         listId={list.id}
                         maxVisible={MAX_TAB_AVATARS}
-                        popover={false}
                         avatarClassName="ring-muted group-data-active/tab:ring-primary"
                       />
                     </span>
@@ -193,6 +229,7 @@ export default function HomePage() {
                   <ListMenuDrawer
                     list={list}
                     onRenamed={(name) => handleRenamed(list.id, name)}
+                    onDeleted={() => handleDeleted(list.id)}
                     trigger={
                       <Button
                         variant="ghost"
@@ -224,7 +261,7 @@ export default function HomePage() {
             </Button>
           </div>
           {lists.map((list) => (
-            <TabsContent key={list.id} value={list.id} className="mt-6 px-4">
+            <TabsContent key={list.id} value={list.id} className="mt-2 px-4">
               <ListEditor
                 listId={list.id}
                 action={
@@ -241,18 +278,6 @@ export default function HomePage() {
                     >
                       <Share />
                     </InviteDrawer>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      render={
-                        <Link
-                          to={`/lists/${list.id}`}
-                          aria-label={`${list.name}を開く`}
-                        />
-                      }
-                    >
-                      <ArrowUpRight />
-                    </Button>
                   </div>
                 }
               />

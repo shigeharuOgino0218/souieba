@@ -1,16 +1,37 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useParams,
+} from 'react-router-dom'
 import { AuthProvider } from '@/hooks/useAuth'
 import { RequireAuth } from '@/components/RequireAuth'
 import { PushNavigator } from '@/components/PushNavigator'
 import { Toaster } from '@/components/ui/sonner'
+import type { HomeLocationState } from '@/lib/lists'
 import LoginPage from '@/pages/LoginPage'
 import SignUpPage from '@/pages/SignUpPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import HomePage from '@/pages/HomePage'
-import ListPage from '@/pages/ListPage'
 import InvitePage from '@/pages/InvitePage'
 import SettingsPage from '@/pages/SettingsPage'
+
+/**
+ * 個別リストの URL を HomePage の該当タブに読み替える。
+ * Push 通知のタップ先 (Edge Function が送る url) と配信済みの通知がこの URL を指しているため、ルートとして残している。
+ */
+function ListRedirect() {
+  const { listId } = useParams<{ listId: string }>()
+  return (
+    <Navigate
+      to="/"
+      replace
+      state={listId ? ({ listId } satisfies HomeLocationState) : undefined}
+    />
+  )
+}
 
 export default function App() {
   return (
@@ -24,7 +45,7 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route element={<RequireAuth />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/lists/:listId" element={<ListPage />} />
+            <Route path="/lists/:listId" element={<ListRedirect />} />
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

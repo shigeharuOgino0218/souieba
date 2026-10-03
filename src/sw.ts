@@ -41,17 +41,17 @@ type PushPayload = {
   url: string
 }
 
-async function isViewing(url: string): Promise<boolean> {
+// リストは HomePage にタブで並び(/lists/:id もここへリダイレクトされる)、どのリストの通知でもルートを開いていれば見ている扱いにする
+async function isViewingLists(): Promise<boolean> {
   const clients = await self.clients.matchAll({
     type: 'window',
     includeUncontrolled: true,
   })
-  return clients.some((client) => {
-    if (client.visibilityState !== 'visible') return false
-    // HomePage は全リストを同時に表示するのでルートも「見ている」扱いにする
-    const path = new URL(client.url).pathname
-    return path === '/' || path === url
-  })
+  return clients.some(
+    (client) =>
+      client.visibilityState === 'visible' &&
+      new URL(client.url).pathname === '/',
+  )
 }
 
 self.addEventListener('push', (event) => {
@@ -68,7 +68,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     (async () => {
       // userVisibleOnly の制約上ここで握りつぶすと購読を切られるため、必ず通知は出す
-      const silent = await isViewing(payload.url)
+      const silent = await isViewingLists()
       await self.registration.showNotification(payload.title, {
         body: payload.body,
         tag: payload.tag,

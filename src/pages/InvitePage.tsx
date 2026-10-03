@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import type { HomeLocationState } from '@/lib/lists'
 import type { InviteInfo } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
@@ -44,7 +45,10 @@ export default function InvitePage() {
       return
     }
     toast.success('リストに参加しました')
-    navigate(`/lists/${data}`, { replace: true })
+    navigate('/', {
+      replace: true,
+      state: { listId: data } satisfies HomeLocationState,
+    })
   }
 
   return (

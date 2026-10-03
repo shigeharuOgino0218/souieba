@@ -1,84 +1,28 @@
-import { useCallback, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { useListMembers } from '@/hooks/useListMembers'
 import { UserAvatar } from '@/components/UserAvatar'
-import type { ListMember } from '@/lib/types'
-
-type Member = {
-  user_id: string
-  role: ListMember['role']
-  display_name: string
-  avatar_icon: string | null
-  avatar_color: string | null
-}
 
 const MAX_VISIBLE = 5
 
+/** メンバーのアバターを重ねて並べる。maxVisible を超えた分は「+N」にまとめる。 */
 export function MemberList({
   listId,
   maxVisible = MAX_VISIBLE,
-  popover = true,
   avatarClassName,
 }: {
   listId: string
   maxVisible?: number
-  popover?: boolean
   avatarClassName?: string
 }) {
-  const [members, setMembers] = useState<Member[]>([])
-
-  const load = useCallback(async () => {
-    const { data } = await supabase
-      .from('list_members')
-      .select(
-        'user_id, role, profiles(display_name, avatar_icon, avatar_color)',
-      )
-      .eq('list_id', listId)
-      .order('created_at')
-    setMembers(
-      (data ?? []).map((row) => ({
-        user_id: row.user_id,
-        role: row.role,
-        display_name: row.profiles?.display_name || '名無し',
-        avatar_icon: row.profiles?.avatar_icon ?? null,
-        avatar_color: row.profiles?.avatar_color ?? null,
-      })),
-    )
-  }, [listId])
-
-  useEffect(() => {
-    void load()
-    const channel = supabase
-      .channel(`members-${listId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'list_members',
-          filter: `list_id=eq.${listId}`,
-        },
-        () => void load(),
-      )
-      .subscribe()
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [listId, load])
+  const members = useListMembers(listId)
 
   if (members.length === 0) return null
 
   const visible = members.slice(0, maxVisible)
   const extra = members.length - visible.length
 
-  const avatars = (
-    <>
+  return (
+    <span className="flex items-center -space-x-1.5">
       {visible.map((member) => (
         <UserAvatar
           key={member.user_id}
@@ -98,41 +42,6 @@ export function MemberList({
           +{extra}
         </span>
       )}
-    </>
-  )
-
-  if (!popover) {
-    return <span className="flex items-center -space-x-1.5">{avatars}</span>
-  }
-
-  return (
-    <Popover>
-      <PopoverTrigger
-        aria-label="メンバー一覧を表示"
-        className="flex items-center -space-x-1.5"
-      >
-        {avatars}
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-56 p-2">
-        <ul className="space-y-1">
-          {members.map((member) => (
-            <li
-              key={member.user_id}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
-            >
-              <UserAvatar
-                icon={member.avatar_icon}
-                color={member.avatar_color}
-                size="md"
-              />
-              <span className="flex-1 truncate">{member.display_name}</span>
-              {member.role === 'owner' && (
-                <Badge variant="secondary">オーナー</Badge>
-              )}
-            </li>
-          ))}
-        </ul>
-      </PopoverContent>
-    </Popover>
+    </span>
   )
 }
