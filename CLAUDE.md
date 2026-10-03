@@ -67,6 +67,12 @@ lint の警告はゼロが基準。警告が出たらそれは本物のシグナ
 
 `list_members` を参照するポリシーは無限再帰しやすい。`0002_fix_lists_select_policy.sql` はその修正で、`security definer` の `is_list_member()` を経由して再帰を避けている。同種のポリシーを書くときはこの関数を使う。
 
+### CLI の履歴とリモートがずれたら
+
+ダッシュボードで手動変更してしまうと、マイグレーション履歴と実体がずれる。
+`supabase migration list` で Local / Remote を突き合わせ、適用済みのものは
+`supabase migration repair --status applied <version>` で記録を合わせる。
+
 ### 型とスキーマがずれたら
 
 `database.types.ts` は生成物なので手で編集しない。ずれたら `bun run db:types` で再生成する。

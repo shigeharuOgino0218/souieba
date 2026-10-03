@@ -70,28 +70,8 @@ Vercel にデプロイします。
 
 ## 開発
 
-`bun run check` で format / lint / typecheck / test をまとめて実行します。  
-作業を終える前にこれを通してください。
-
-### スキーマを変更する
-
-スキーマの真実の源は `supabase/migrations/` です。  
-**ダッシュボードの SQL Editor で直接変更しないでください。**  
-CLI で適用し、TypeScript の型はそこから生成します。
-
-```sh
-# 1. 連番でマイグレーションを追加する(例: supabase/migrations/0005_add_memo.sql)
-# 2. リモートに適用し、続けて型を再生成する
-bun run db:migrate
-```
-
-`db:migrate` は `supabase db push`(本番 DB への適用。確認プロンプトあり)と `bun run db:types`(`src/lib/database.types.ts` の再生成)を続けて実行します。
-
-生成された型は [`src/lib/supabase.ts`](src/lib/supabase.ts) の `createClient<Database>` に渡っているので、存在しないカラム名や RPC の引数ミスはコンパイルエラーになります。  
-`src/lib/database.types.ts` は生成物なので手で編集しないでください。
-
-> ダッシュボードで手動変更してしまった場合、CLI の履歴と実体がずれます。  
-> `supabase migration list` で Local / Remote を突き合わせ、既に適用済みのものは `supabase migration repair --status applied <version>` で記録を合わせます。
+コマンド、DB スキーマの変更手順、コーディング規約は [CLAUDE.md](CLAUDE.md) にまとめています。  
+作業を終える前に `bun run check`(format / lint / typecheck / test)を通してください。
 
 ## プッシュ通知のセットアップ
 
@@ -185,8 +165,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
 ### 通知タイミングの設計
 
 通知が飛ぶのは、`items.name` が空から非空になった1回だけです。  
-名前を後から編集しても2通目は飛びません。  
-`0004_push_notifications.sql` には UPDATE 用と INSERT 用の2つのトリガーがあり、どちらも `when` 句でこの条件だけを見ています。
+名前を後から編集しても2通目は飛びません。
 
 この条件は、入力が終わる前に満たされます。  
 「コーヒー」まで打って手が止まると 500ms 後に UPDATE が走り、そこでトリガーが発火します。  
@@ -213,14 +192,12 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
 クライアントに依存するのは「入力停止から 500ms 後の UPDATE が DB に届くか」だけです。
 
 `NOTIFY_DELAY_MS` の上限は Edge Function の実行時間です(Free プランで wall clock 150秒)。  
-伸ばす場合はこれを超えないようにしてください。  
-なお呼び出し元の `pg_net` を待たせないよう、Edge Function は 202 を即返してからバックグラウンド(`EdgeRuntime.waitUntil`)で送信しています。
+伸ばす場合はこれを超えないようにしてください。
 
 ### 通知が届く条件
 
 - iOS では 16.4 以上かつ「ホーム画面に追加」した PWA としてのみ受け取れます。Safari のタブでは動きません。
 - HTTPS 必須です。`bun dev` の LAN IP アクセス(`http://192.168.x.x`)では Service Worker ごと動きません。デスクトップ Chrome の `http://localhost:5173` は secure context 扱いなので、そちらでは通知まで検証できます。
-- 通知タップで `/lists/:id` を直接開くため、ホスティング側に SPA フォールバックの rewrite が必要です。
 
 ## 動作確認の手順
 
