@@ -13,6 +13,10 @@ function sortByPosition(items: Item[]): Item[] {
   return [...items].sort((a, b) => a.position - b.position)
 }
 
+function endPosition(items: Item[]): number {
+  return (sortByPosition(items).at(-1)?.position ?? 0) + 1
+}
+
 function upsertById<T extends { id: string }>(rows: T[], row: T): T[] {
   return rows.some((r) => r.id === row.id)
     ? rows.map((r) => (r.id === row.id ? row : r))
@@ -128,7 +132,7 @@ export function useListData(listId: string, userId: string) {
           ? (cur.position + next.position) / 2
           : (cur?.position ?? 0) + 1
       } else {
-        position = (sorted.at(-1)?.position ?? 0) + 1
+        position = endPosition(sorted)
       }
       const newItem: Item = {
         id,
@@ -139,6 +143,8 @@ export function useListData(listId: string, userId: string) {
         position,
         created_by: userId,
         created_at: new Date().toISOString(),
+        repeat: false,
+        shelved: false,
       }
       setItems((prev) => sortByPosition([...prev, newItem]))
       supabase
@@ -155,6 +161,7 @@ export function useListData(listId: string, userId: string) {
     [listId, userId],
   )
 
+  // リピ買いはドロワーにも名前を出すので空の名前を保存しない。空のまま入力を終えたら ItemRow が元の名前に戻す
   const updateItemName = useCallback((id: string, name: string) => {
     recentEdits.current.set(id, Date.now())
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, name } : i)))
@@ -164,6 +171,8 @@ export function useListData(listId: string, userId: string) {
       id,
       setTimeout(() => {
         timers.delete(id)
+        const repeat = itemsRef.current.find((i) => i.id === id)?.repeat
+        if (repeat && name.trim() === '') return
         recentEdits.current.set(id, Date.now())
         supabase
           .from('items')
@@ -176,29 +185,89 @@ export function useListData(listId: string, userId: string) {
     )
   }, [])
 
-  const toggleChecked = useCallback((id: string, checked: boolean) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, checked } : i)))
+  const patchItem = useCallback((id: string, patch: Partial<Item>) => {
+    setItems((prev) =>
+      sortByPosition(prev.map((i) => (i.id === id ? { ...i, ...patch } : i))),
+    )
     supabase
       .from('items')
-      .update({ checked })
+      .update(patch)
       .eq('id', id)
       .then(({ error }) => {
         if (error) toast.error('更新に失敗しました')
       })
   }, [])
 
-  const setItemStore = useCallback((id: string, storeId: string | null) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, store_id: storeId } : i)),
-    )
-    supabase
-      .from('items')
-      .update({ store_id: storeId })
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) toast.error('更新に失敗しました')
-      })
-  }, [])
+  const toggleChecked = useCallback(
+    (id: string, checked: boolean) => patchItem(id, { checked }),
+    [patchItem],
+  )
+
+  const setItemStore = useCallback(
+    (id: string, storeId: string | null) =>
+      patchItem(id, { store_id: storeId }),
+    [patchItem],
+  )
+
+  const setRepeat = useCallback(
+    (id: string, repeat: boolean) => patchItem(id, { repeat }),
+    [patchItem],
+  )
+
+  // リストからリピ買いのドロワーに戻す。買っていないのでチェックも外す
+  const shelveItem = useCallback(
+    (id: string) => patchItem(id, { shelved: true, checked: false }),
+    [patchItem],
+  )
+
+  // リピ買いのドロワーからリストの末尾に戻す。DB トリガーが「追加」として通知する
+  const unshelveItem = useCallback(
+    (id: string) =>
+      patchItem(id, {
+        shelved: false,
+        position: endPosition(itemsRef.current),
+      }),
+    [patchItem],
+  )
+
+  // リピ買いのドロワーに直接登録する。リストには出さないので通知もされない
+  const addRepeatItem = useCallback(
+    (name: string) => {
+      const id = generateId()
+      const position = endPosition(itemsRef.current)
+      const newItem: Item = {
+        id,
+        list_id: listId,
+        name,
+        checked: false,
+        store_id: null,
+        position,
+        created_by: userId,
+        created_at: new Date().toISOString(),
+        repeat: true,
+        shelved: true,
+      }
+      setItems((prev) => sortByPosition([...prev, newItem]))
+      supabase
+        .from('items')
+        .insert({
+          id,
+          list_id: listId,
+          name,
+          position,
+          created_by: userId,
+          repeat: true,
+          shelved: true,
+        })
+        .then(({ error }) => {
+          if (error) {
+            toast.error('リピ買いの登録に失敗しました')
+            setItems((prev) => prev.filter((i) => i.id !== id))
+          }
+        })
+    },
+    [listId, userId],
+  )
 
   const deleteItem = useCallback((id: string) => {
     clearTimeout(nameTimers.current.get(id))
@@ -270,6 +339,10 @@ export function useListData(listId: string, userId: string) {
     updateItemName,
     toggleChecked,
     setItemStore,
+    setRepeat,
+    shelveItem,
+    unshelveItem,
+    addRepeatItem,
     deleteItem,
     addStore,
     renameStore,

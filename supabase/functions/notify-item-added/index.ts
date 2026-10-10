@@ -23,19 +23,24 @@ const admin = createClient(
   { auth: { persistSession: false, autoRefreshToken: false } },
 )
 
+type PushEventItem = { name: string; repeat: boolean; shelved: boolean }
+
 type PushEventRow = {
   item_id: string
   created_at: string
-  item: { name: string } | { name: string }[] | null
+  item: PushEventItem | PushEventItem[] | null
 }
 
-function itemName(row: PushEventRow): string {
+// 通知に載せる名前。待っている間に名前を消された・リピ買いのドロワーに戻されたアイテムは載せない。
+// リピ買いには 🔁 を付けて「いつもの品」だと分かるようにする
+function itemLabel(row: PushEventRow): string {
   const item = Array.isArray(row.item) ? row.item[0] : row.item
-  return item?.name?.trim() ?? ''
+  const name = item?.name?.trim() ?? ''
+  if (!item || !name || item.shelved) return ''
+  return item.repeat ? `🔁${name}` : name
 }
 
 function buildBody(actor: string, names: string[]): string {
-  if (names.length === 0) return `${actor}さんがアイテムを追加しました`
   if (names.length === 1) return `${actor}さんが「${names[0]}」を追加しました`
   const head = names.slice(0, 2).join('、')
   const rest = names.length > 2 ? ` ほか${names.length - 2}件` : ''
@@ -71,7 +76,7 @@ async function notify(listId: string, actorId: string) {
       .neq('user_id', actorId),
     admin
       .from('push_events')
-      .select('item_id, created_at, item:items(name)')
+      .select('item_id, created_at, item:items(name, repeat, shelved)')
       .eq('list_id', listId)
       .eq('actor_id', actorId)
       .gte('created_at', since)
@@ -85,11 +90,16 @@ async function notify(listId: string, actorId: string) {
   const seen = new Set<string>()
   const names: string[] = []
   for (const row of ((eventsRes.data ?? []) as PushEventRow[]).reverse()) {
-    const name = itemName(row)
+    const name = itemLabel(row)
     if (name && !seen.has(row.item_id)) {
       seen.add(row.item_id)
       names.push(name)
     }
+  }
+  // 入力してすぐ消した、戻してすぐ取り消したなどで載せるアイテムが残っていなければ、何も追加されていないので送らない
+  if (names.length === 0) {
+    console.log('skipped', { listId, reason: 'no items' })
+    return
   }
 
   const payload = JSON.stringify({
