@@ -22,12 +22,12 @@ if git diff --quiet -- src supabase &&
 fi
 
 if ! out=$(bun run typecheck 2>&1); then
-  printf '型チェックが通っていません。修正してください。\n%s\n' "$out"
+  printf '型チェックが通っていません。修正してください。\n%s\n' "$out" >&2
   exit 2
 fi
 
 if ! out=$(bun run test 2>&1); then
-  printf 'テストが落ちています。修正してください。\n%s\n' "$out"
+  printf 'テストが落ちています。修正してください。\n%s\n' "$out" >&2
   exit 2
 fi
 
