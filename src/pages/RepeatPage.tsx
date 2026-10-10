@@ -1,13 +1,13 @@
 import { useLists } from '@/hooks/useLists'
-import { ListEditor } from '@/components/ListEditor'
+import { RepeatBuyEditor } from '@/components/RepeatBuyEditor'
 import {
   ListBodySkeleton,
   ListHeader,
   NoListsPlaceholder,
 } from '@/components/ListHeader'
 
-/** 買い物リストのタブ。選択中のリストのアイテムを編集する */
-export default function HomePage() {
+/** リピ買いのタブ。選択中のリストのリピ買いを選んで、まとめて買い物リストに登録する */
+export default function RepeatPage() {
   const { loading, active } = useLists()
 
   return (
@@ -19,8 +19,8 @@ export default function HomePage() {
         </div>
       ) : active ? (
         <div className="mt-2 px-4">
-          {/* 入力中の行やフォーカスはリストごとのものなので、切り替えたら作り直す */}
-          <ListEditor key={active.id} />
+          {/* 選択と検索はリストごとのものなので、切り替えたら作り直して消す */}
+          <RepeatBuyEditor key={active.id} />
         </div>
       ) : (
         <NoListsPlaceholder />

@@ -15,7 +15,7 @@ describe('pickSweepNotice', () => {
     )
   })
 
-  it('チェック済みがリピ買いだけならドロワーに戻る予告', () => {
+  it('チェック済みがリピ買いだけならリピ買いに戻る予告', () => {
     expect(pickSweepNotice([item(true, true), item(false, false)])).toBe(
       'return',
     )

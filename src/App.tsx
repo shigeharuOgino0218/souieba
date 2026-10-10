@@ -8,6 +8,7 @@ import {
 import { AuthProvider } from '@/hooks/useAuth'
 import { RequireAuth } from '@/components/RequireAuth'
 import { PushNavigator } from '@/components/PushNavigator'
+import { AppLayout } from '@/components/AppLayout'
 import { Toaster } from '@/components/ui/sonner'
 import type { HomeLocationState } from '@/lib/lists'
 import LoginPage from '@/pages/LoginPage'
@@ -15,11 +16,13 @@ import SignUpPage from '@/pages/SignUpPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import HomePage from '@/pages/HomePage'
+import RepeatPage from '@/pages/RepeatPage'
+import MealsPage from '@/pages/MealsPage'
 import InvitePage from '@/pages/InvitePage'
 import SettingsPage from '@/pages/SettingsPage'
 
 /**
- * 個別リストの URL を HomePage の該当タブに読み替える。
+ * 個別リストの URL を、買い物リストのタブでそのリストを選んだ状態に読み替える。
  * Push 通知のタップ先 (Edge Function が送る url) と配信済みの通知がこの URL を指しているため、ルートとして残している。
  */
 function ListRedirect() {
@@ -44,7 +47,11 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<HomePage />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/repeat" element={<RepeatPage />} />
+              <Route path="/meals" element={<MealsPage />} />
+            </Route>
             <Route path="/lists/:listId" element={<ListRedirect />} />
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/settings" element={<SettingsPage />} />

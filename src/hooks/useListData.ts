@@ -26,7 +26,9 @@ function upsertById<T extends { id: string }>(rows: T[], row: T): T[] {
 export function useListData(listId: string, userId: string) {
   const [items, setItems] = useState<Item[]>([])
   const [stores, setStores] = useState<Store[]>([])
-  const [loading, setLoading] = useState(true)
+  // 読み込み済みのリスト。切り替えた直後は前のリストの中身が残っているので、一致するまで読み込み中として扱う
+  const [loadedListId, setLoadedListId] = useState<string | null>(null)
+  const loading = loadedListId !== listId
 
   const itemsRef = useRef<Item[]>([])
   useEffect(() => {
@@ -40,7 +42,6 @@ export function useListData(listId: string, userId: string) {
     let cancelled = false
 
     const load = async () => {
-      setLoading(true)
       const [itemsRes, storesRes] = await Promise.all([
         supabase
           .from('items')
@@ -58,7 +59,7 @@ export function useListData(listId: string, userId: string) {
         toast.error('リストの読み込みに失敗しました')
       setItems(itemsRes.data ?? [])
       setStores(storesRes.data ?? [])
-      setLoading(false)
+      setLoadedListId(listId)
     }
     void load()
 
@@ -161,7 +162,7 @@ export function useListData(listId: string, userId: string) {
     [listId, userId],
   )
 
-  // リピ買いはドロワーにも名前を出すので空の名前を保存しない。空のまま入力を終えたら ItemRow が元の名前に戻す
+  // リピ買いはリピ買いのページにも名前を出すので空の名前を保存しない。空のまま入力を終えたら ItemRow が元の名前に戻す
   const updateItemName = useCallback((id: string, name: string) => {
     recentEdits.current.set(id, Date.now())
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, name } : i)))
@@ -214,23 +215,24 @@ export function useListData(listId: string, userId: string) {
     [patchItem],
   )
 
-  // リストからリピ買いのドロワーに戻す。買っていないのでチェックも外す
+  // リストからリピ買いに戻す。買っていないのでチェックも外す
   const shelveItem = useCallback(
     (id: string) => patchItem(id, { shelved: true, checked: false }),
     [patchItem],
   )
 
-  // リピ買いのドロワーからリストの末尾に戻す。DB トリガーが「追加」として通知する
-  const unshelveItem = useCallback(
-    (id: string) =>
-      patchItem(id, {
-        shelved: false,
-        position: endPosition(itemsRef.current),
-      }),
+  // リピ買いから渡された順にリストの末尾へ並べる。DB トリガーが「追加」として通知し、Edge Function が1通にまとめる
+  const unshelveItems = useCallback(
+    (ids: string[]) => {
+      const start = endPosition(itemsRef.current)
+      ids.forEach((id, i) =>
+        patchItem(id, { shelved: false, position: start + i }),
+      )
+    },
     [patchItem],
   )
 
-  // リピ買いのドロワーに直接登録する。リストには出さないので通知もされない
+  // リピ買いに直接登録する。リストには出さないので通知もされない
   const addRepeatItem = useCallback(
     (name: string) => {
       const id = generateId()
@@ -341,7 +343,7 @@ export function useListData(listId: string, userId: string) {
     setItemStore,
     setRepeat,
     shelveItem,
-    unshelveItem,
+    unshelveItems,
     addRepeatItem,
     deleteItem,
     addStore,

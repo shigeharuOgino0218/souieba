@@ -41,7 +41,8 @@ type PushPayload = {
   url: string
 }
 
-// リストは HomePage にタブで並び(/lists/:id もここへリダイレクトされる)、どのリストの通知でもルートを開いていれば見ている扱いにする
+// 買い物リストのタブ (/) を開いていれば、どのリストの通知でも見ている扱いにする(/lists/:id もここへリダイレクトされる)。
+// リピ買いのタブには普通のアイテムが出ないので、見ている扱いにしない
 async function isViewingLists(): Promise<boolean> {
   const clients = await self.clients.matchAll({
     type: 'window',

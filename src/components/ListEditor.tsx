@@ -1,24 +1,23 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CirclePlus } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
-import { useListData } from '@/hooks/useListData'
+import { useActiveListData } from '@/hooks/useLists'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { ItemRow } from '@/components/ItemRow'
-import { RepeatBuyDrawer } from '@/components/RepeatBuyDrawer'
+import { ListBodySkeleton } from '@/components/ListHeader'
 import { SweepBanner } from '@/components/SweepBanner'
 import { pickSweepNotice } from '@/lib/repeat'
 
-export const LAST_LIST_KEY = 'souieba:lastListId'
+// 片付けの予告と「追加」ボタンのあいだ、予告とボトムメニューのあいだの隙間 (0.5rem)
+const GAP_PX = 8
 
-export function ListEditor({
-  listId,
-  action,
-}: {
-  listId: string
-  action?: ReactNode
-}) {
-  const { session } = useAuth()
+/**
+ * 選択中のリストのアイテムを編集する本体。
+ *
+ * 「追加」ボタンはリストの末尾に置き、sticky で画面下に張り付かせる。リストが短いあいだは最後の行の直下、
+ * 長くなるとボトムメニューの上で止まる。片付けの予告はボトムメニューの上に固定するので、
+ * 予告が出ているあいだは、その高さを測って「追加」ボタンの止まる位置を予告の上に持ち上げる。
+ */
+export function ListEditor() {
   const {
     items,
     stores,
@@ -29,22 +28,29 @@ export function ListEditor({
     setItemStore,
     setRepeat,
     shelveItem,
-    unshelveItem,
-    addRepeatItem,
     deleteItem,
     addStore,
     renameStore,
     deleteStore,
-  } = useListData(listId, session!.user.id)
+  } = useActiveListData()
 
-  // リピ買いのドロワーにしまわれているアイテムも同じ items に入っているので、リストに出す分を分ける
+  // リピ買いにしまわれているアイテムも同じ items に入っているので、リストに出す分を分ける
   const listItems = items.filter((i) => !i.shelved)
-  const repeatItems = items.filter((i) => i.repeat)
   const sweepNotice = pickSweepNotice(listItems)
 
-  useEffect(() => {
-    localStorage.setItem(LAST_LIST_KEY, listId)
-  }, [listId])
+  const [bannerHeight, setBannerHeight] = useState(0)
+  const bannerRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) =>
+      setBannerHeight(entry.borderBoxSize[0].blockSize),
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      setBannerHeight(0)
+    }
+  }, [])
+  const bannerSpace = bannerHeight > 0 ? bannerHeight + GAP_PX : 0
 
   const inputRefs = useRef(new Map<string, HTMLInputElement>())
   const registerInput = useCallback(
@@ -76,67 +82,51 @@ export function ListEditor({
     if (prev) setFocusId(prev.id)
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-8 w-full" />
-      </div>
-    )
-  }
+  if (loading) return <ListBodySkeleton />
 
   return (
     <div>
-      {/* 片付けの予告が下のバーの上に重なる分だけ、最後の行が隠れないよう余白を広げる */}
-      <div className={sweepNotice ? 'mb-52' : 'mb-36'}>
-        {listItems.map((item) => (
-          <ItemRow
-            key={item.id}
-            item={item}
-            stores={stores}
-            onNameChange={updateItemName}
-            onToggle={toggleChecked}
-            onEnter={handleEnter}
-            onBackspaceEmpty={handleBackspaceEmpty}
-            onSetStore={setItemStore}
-            onSetRepeat={setRepeat}
-            onDelete={deleteItem}
-            onShelve={shelveItem}
-            onAddStore={addStore}
-            onRenameStore={renameStore}
-            onDeleteStore={deleteStore}
-            registerInput={registerInput}
-          />
-        ))}
+      {listItems.map((item) => (
+        <ItemRow
+          key={item.id}
+          item={item}
+          stores={stores}
+          onNameChange={updateItemName}
+          onToggle={toggleChecked}
+          onEnter={handleEnter}
+          onBackspaceEmpty={handleBackspaceEmpty}
+          onSetStore={setItemStore}
+          onSetRepeat={setRepeat}
+          onDelete={deleteItem}
+          onShelve={shelveItem}
+          onAddStore={addStore}
+          onRenameStore={renameStore}
+          onDeleteStore={deleteStore}
+          registerInput={registerInput}
+        />
+      ))}
+      <div
+        className="sticky z-10 mt-2 w-fit"
+        style={{
+          bottom: `calc(var(--bottom-nav-height) + ${GAP_PX + bannerSpace}px)`,
+        }}
+      >
+        <Button size="lg" onClick={handleAdd}>
+          <CirclePlus data-icon="inline-start" />
+          <span className="text-trim">追加</span>
+        </Button>
       </div>
-      {/* <Separator /> */}
-      <div className="fixed bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)))] z-10 grid w-[calc(100%-2rem)] gap-1">
-        {sweepNotice && <SweepBanner notice={sweepNotice} />}
-        <div className="flex translate-y-1/8 items-center justify-between rounded-full bg-muted/50 p-2 backdrop-blur">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={handleAdd}
-              className="!bg-background dark:!bg-muted"
-            >
-              <CirclePlus data-icon="inline-start" />
-              <span className="text-trim">追加</span>
-            </Button>
-            <RepeatBuyDrawer
-              items={repeatItems}
-              stores={stores}
-              onRestore={unshelveItem}
-              onShelve={shelveItem}
-              onAdd={addRepeatItem}
-              onRename={updateItemName}
-              onDelete={deleteItem}
-            />
-          </div>
-          {action}
+      {/* 末尾までスクロールしたときも、「追加」ボタンが予告の裏に入らないだけの余白 */}
+      <div style={{ height: bannerSpace }} />
+      {sweepNotice && (
+        <div
+          ref={bannerRef}
+          className="fixed inset-x-0 z-10 mx-auto max-w-2xl px-4"
+          style={{ bottom: `calc(var(--bottom-nav-height) + ${GAP_PX}px)` }}
+        >
+          <SweepBanner notice={sweepNotice} />
         </div>
-      </div>
+      )}
     </div>
   )
 }

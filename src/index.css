@@ -45,6 +45,11 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  /*
+   * 画面下に固定するボトムメニューの高さ(ホームインジケーターの領域を含む)。
+   * 片付けの予告や「追加」「買い物リストに登録」のボタンは、この高さを基準にメニューの上へ置く。
+   */
+  --bottom-nav-height: calc(4rem + env(safe-area-inset-bottom));
 }
 
 .dark {
