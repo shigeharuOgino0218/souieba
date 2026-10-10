@@ -142,4 +142,14 @@
     font-feature-settings: "palt";
     letter-spacing: 0.025em;
   }
+
+  /*
+   * ドロワーは画面の最下部に固定されるため、iOS の PWA(viewport-fit=cover の全画面表示)では
+   * 下端がホームインジケーターの領域に入り込んで見切れる。その分の余白を中身の下に確保する。
+   * shadcn の生成物 (components/ui/drawer.tsx) は手で編集しないので、data-slot を目印にここで足す。
+   * Safari のタブなど安全領域が無い環境では env() が 0 になり、見た目は変わらない。
+   */
+  [data-slot="drawer-content"] {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
