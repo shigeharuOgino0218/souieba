@@ -51,6 +51,19 @@
   --bottom-nav-height: calc(4rem + env(safe-area-inset-bottom));
 }
 
+/*
+ * 入力欄にフォーカスしているあいだは、キーボードの上に出て表示領域を狭めないようボトムメニューを隠す。
+ * メニューの上に置いていた「追加」ボタンや片付けの予告は、高さを 0 にしてキーボードのすぐ上まで下げる。
+ * data-input-focused は BottomNav が付け外しする。
+ */
+:root[data-input-focused] {
+  --bottom-nav-height: 0px;
+}
+
+:root[data-input-focused] [data-slot="bottom-nav"] {
+  display: none;
+}
+
 .dark {
   /* --background: oklch(0.141 0.005 285.823); */
   --background: oklch(20.8% 0.042 265.755); /* Slate 900 */
@@ -141,10 +154,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  /*
+   * iOS は近い位置への素早い2回のタップをダブルタップでの拡大とみなし、2回目のタップを飲み込む。
+   * 縦に並んだチェックボックスを続けて押すと取りこぼすので、ダブルタップでの拡大を止める(ピンチでの拡大はできる)。
+   */
   html {
     @apply font-sans;
     font-feature-settings: "palt";
     letter-spacing: 0.025em;
+    touch-action: manipulation;
   }
 
   /*

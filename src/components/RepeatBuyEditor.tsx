@@ -111,7 +111,7 @@ export function RepeatBuyEditor() {
   if (loading) return <ListBodySkeleton />
 
   return (
-    <div className={selectedItems.length > 0 ? 'pb-14' : undefined}>
+    <div className={selectedItems.length > 0 ? 'pb-16' : undefined}>
       <div className="grid gap-4">
         <div className="flex items-center gap-2 p-1">
           <Input
@@ -174,8 +174,12 @@ export function RepeatBuyEditor() {
       </div>
 
       {selectedItems.length > 0 && (
-        <div className="fixed inset-x-0 bottom-[calc(var(--bottom-nav-height)+0.5rem)] z-10 flex justify-center px-4">
-          <Button size="lg" onClick={handleRegister}>
+        <div className="fixed inset-x-0 bottom-[calc(var(--bottom-nav-height)+0.5rem)] z-10 mx-auto max-w-2xl px-4">
+          <Button
+            size="lg"
+            className="h-12 w-full gap-2 px-6 text-base has-data-[icon=inline-start]:pl-5 [&_svg:not([class*='size-'])]:size-5"
+            onClick={handleRegister}
+          >
             <span className="text-trim">
               買い物リストに登録({selectedItems.length}件)
             </span>

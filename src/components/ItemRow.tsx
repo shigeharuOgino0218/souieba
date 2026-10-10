@@ -5,6 +5,26 @@ import { cn } from '@/lib/utils'
 import { ItemSettingsDrawer } from '@/components/ItemSettingsDrawer'
 import type { Item, Store } from '@/lib/types'
 
+// キーボードが開いて表示領域が縮み終わるのを待つ上限。これを過ぎた画面サイズの変化には追従しない
+const KEYBOARD_OPEN_WAIT_MS = 1000
+
+/**
+ * フォーカスした行を、画面下の「追加」ボタンに隠れない位置までスクロールする。
+ * 止まる位置は行の scroll-margin-bottom(ListEditor が --item-scroll-margin で渡す)で決まる。
+ * キーボードが開いて表示領域が縮むのはフォーカスより後なので、縮んだときにもう一度合わせる。
+ */
+function scrollRowIntoView(row: HTMLElement) {
+  const scroll = () => row.scrollIntoView({ block: 'nearest' })
+  scroll()
+  const viewport = window.visualViewport
+  if (!viewport) return
+  viewport.addEventListener('resize', scroll, { once: true })
+  setTimeout(
+    () => viewport.removeEventListener('resize', scroll),
+    KEYBOARD_OPEN_WAIT_MS,
+  )
+}
+
 type Props = {
   item: Item
   stores: Store[]
@@ -27,6 +47,7 @@ type Props = {
  *
  * リピ買いの名前はリピ買いのタブにも出るので空にさせない。Backspace では行を消さず、
  * 空のまま入力を終えたら、編集を始めたときの名前に戻す。
+ * 入力欄にフォーカスしたら、タップでも Enter での移動でも、行が「追加」ボタンに隠れないようスクロールする。
  */
 export function ItemRow({
   item,
@@ -45,12 +66,16 @@ export function ItemRow({
   registerInput,
 }: Props) {
   const nameAtFocus = useRef(item.name)
+  const rowRef = useRef<HTMLDivElement>(null)
   const store = item.store_id
     ? (stores.find((s) => s.id === item.store_id) ?? null)
     : null
 
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] items-start gap-x-3 overflow-hidden py-2">
+    <div
+      ref={rowRef}
+      className="grid scroll-mb-(--item-scroll-margin) grid-cols-[auto_1fr_auto] items-center gap-x-2 overflow-hidden py-1"
+    >
       <Checkbox
         checked={item.checked}
         onCheckedChange={(checked) => onToggle(item.id, checked === true)}
@@ -62,11 +87,12 @@ export function ItemRow({
           value={item.name}
           placeholder="アイテム名を入力"
           className={cn(
-            'h-7 w-full text-base font-bold outline-none placeholder:text-muted-foreground/60',
+            'w-full text-base font-medium outline-none placeholder:text-muted-foreground',
             item.checked && 'text-muted-foreground line-through',
           )}
           onFocus={() => {
             nameAtFocus.current = item.name
+            if (rowRef.current) scrollRowIntoView(rowRef.current)
           }}
           onBlur={() => {
             if (
@@ -103,7 +129,7 @@ export function ItemRow({
               </span>
             )}
             {item.repeat && (
-              <span className="flex shrink-0 items-center gap-0.5">
+              <span className="flex shrink-0 items-center gap-1">
                 <Repeat className="size-3" />
                 リピ買い
               </span>

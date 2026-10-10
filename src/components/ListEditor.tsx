@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react'
 import { CirclePlus } from 'lucide-react'
 import { useActiveListData } from '@/hooks/useLists'
 import { Button } from '@/components/ui/button'
@@ -13,9 +19,12 @@ const GAP_PX = 8
 /**
  * 選択中のリストのアイテムを編集する本体。
  *
- * 「追加」ボタンはリストの末尾に置き、sticky で画面下に張り付かせる。リストが短いあいだは最後の行の直下、
+ * 「追加」ボタンは横幅いっぱいでリストの末尾に置き、sticky で画面下に張り付かせる。リストが短いあいだは最後の行の直下、
  * 長くなるとボトムメニューの上で止まる。片付けの予告はボトムメニューの上に固定するので、
  * 予告が出ているあいだは、その高さを測って「追加」ボタンの止まる位置を予告の上に持ち上げる。
+ *
+ * ブラウザ任せのスクロールでは、フォーカスした行が「追加」ボタンの裏に入る。
+ * 行に「追加」ボタンの上端までの scroll-margin を持たせ、ItemRow がフォーカス時にその上までスクロールする。
  */
 export function ListEditor() {
   const {
@@ -66,7 +75,7 @@ export function ListEditor() {
     if (!focusId) return
     const el = inputRefs.current.get(focusId)
     if (el) {
-      el.focus()
+      el.focus({ preventScroll: true })
       el.setSelectionRange(el.value.length, el.value.length)
       setFocusId(null)
     }
@@ -84,8 +93,17 @@ export function ListEditor() {
 
   if (loading) return <ListBodySkeleton />
 
+  const addButtonBottom = `calc(var(--bottom-nav-height) + ${GAP_PX + bannerSpace}px)`
+
   return (
-    <div>
+    <div
+      style={
+        {
+          // 「追加」ボタン (h-12) の上端に、さらに隙間を足した位置
+          '--item-scroll-margin': `calc(${addButtonBottom} + 3rem + ${GAP_PX}px)`,
+        } as CSSProperties
+      }
+    >
       {listItems.map((item) => (
         <ItemRow
           key={item.id}
@@ -105,13 +123,12 @@ export function ListEditor() {
           registerInput={registerInput}
         />
       ))}
-      <div
-        className="sticky z-10 mt-2 w-fit"
-        style={{
-          bottom: `calc(var(--bottom-nav-height) + ${GAP_PX + bannerSpace}px)`,
-        }}
-      >
-        <Button size="lg" onClick={handleAdd}>
+      <div className="sticky z-10 mt-2" style={{ bottom: addButtonBottom }}>
+        <Button
+          size="lg"
+          className="h-12 w-full gap-2 px-6 text-base has-data-[icon=inline-start]:pl-5 [&_svg:not([class*='size-'])]:size-5"
+          onClick={handleAdd}
+        >
           <CirclePlus data-icon="inline-start" />
           <span className="text-trim">追加</span>
         </Button>

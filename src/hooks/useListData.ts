@@ -67,7 +67,12 @@ export function useListData(listId: string, userId: string) {
       payload: RealtimePostgresChangesPayload<Item>,
     ) => {
       if (payload.eventType === 'INSERT') {
-        setItems((prev) => sortByPosition(upsertById(prev, payload.new)))
+        // 手元にある行は自分が楽観的に追加したもの。エコーは追加した時点の中身なので、届くまでに打った名前を空に戻してしまう
+        setItems((prev) =>
+          prev.some((i) => i.id === payload.new.id)
+            ? prev
+            : sortByPosition([...prev, payload.new]),
+        )
       } else if (payload.eventType === 'UPDATE') {
         const editedAt = recentEdits.current.get(payload.new.id)
         if (editedAt && Date.now() - editedAt < EDIT_ECHO_IGNORE_MS) return
@@ -186,7 +191,9 @@ export function useListData(listId: string, userId: string) {
     )
   }, [])
 
+  // チェックなどを素早く切り替えると、前の切り替えのエコーが後から届いて手元の状態を巻き戻すので、名前と同じく猶予を設ける
   const patchItem = useCallback((id: string, patch: Partial<Item>) => {
+    recentEdits.current.set(id, Date.now())
     setItems((prev) =>
       sortByPosition(prev.map((i) => (i.id === id ? { ...i, ...patch } : i))),
     )
