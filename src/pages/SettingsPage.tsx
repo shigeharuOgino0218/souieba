@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { UserAvatar } from '@/components/UserAvatar'
 import { Separator } from '@/components/ui/separator'
 import { PushToggle } from '@/components/PushToggle'
+import logo from '@/assets/logo.svg'
 
 export default function SettingsPage() {
   const { session } = useAuth()
@@ -167,6 +168,8 @@ export default function SettingsPage() {
           <PushToggle />
         </>
       )}
+
+      <img src={logo} alt="そういえば" className="mx-auto mt-16 mb-10 h-6" />
     </div>
   )
 }

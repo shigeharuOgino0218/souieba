@@ -21,7 +21,7 @@ export default defineConfig({
         short_name: 'SOUIEBA!',
         description: '買い物リストを共有できるアプリ',
         lang: 'ja',
-        theme_color: '#863bff',
+        theme_color: '#2B7FFF',
         background_color: '#ffffff',
         display: 'standalone',
         icons: [
