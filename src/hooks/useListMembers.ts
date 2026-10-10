@@ -14,6 +14,10 @@ export type Member = {
  * リストのメンバーをプロフィール付きで取得し、参加・退会を Realtime で追従する。
  * 同じリストのタブとメンバードロワーが同時にマウントされるため、チャンネル名に useId を混ぜて分ける。
  * supabase.channel() は同じ名前だと既存のチャンネルを返し、購読済みのチャンネルに .on() すると例外になる。
+ *
+ * Realtime は DELETE イベントに filter を適用できず、filter 付きで購読すると退会が届かない。
+ * そのため DELETE だけはフィルタなしで受け、旧行の list_id で自分のリストか判定する。
+ * 旧行には主キー (list_id, user_id) が含まれるので replica identity full は不要。
  */
 export function useListMembers(listId: string) {
   const instanceId = useId()
@@ -45,12 +49,19 @@ export function useListMembers(listId: string) {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'list_members',
           filter: `list_id=eq.${listId}`,
         },
         () => void load(),
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'list_members' },
+        (payload) => {
+          if (payload.old.list_id === listId) void load()
+        },
       )
       .subscribe()
     return () => {

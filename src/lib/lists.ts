@@ -1,5 +1,5 @@
 /**
- * HomePage のタブ選択を決める純粋関数群。
+ * HomePage で開くリストを決める純粋関数群。
  * 個別のリストを開く URL (/lists/:id) は HomePage へのリダイレクトになっており、
  * 開きたいリストの ID は location.state で受け渡す。
  */
@@ -14,7 +14,7 @@ export function readRequestedListId(state: unknown): string | null {
   return typeof state.listId === 'string' ? state.listId : null
 }
 
-/** 最初に選ぶタブ。開きたいリスト → 最後に使っていたリスト → 先頭の順に、存在するものを選ぶ。 */
+/** 最初に開くリスト。開きたいリスト → 最後に使っていたリスト → 先頭の順に、存在するものを選ぶ。 */
 export function pickInitialListId(
   ids: string[],
   requestedId: string | null,
@@ -25,7 +25,7 @@ export function pickInitialListId(
   return ids[0] ?? null
 }
 
-/** リストを取り除いた後に選ぶタブ。選択中のものが消えたら右隣、なければ左隣に移す。 */
+/** リストを取り除いた後に開くリスト。選択中のものが消えたら作成日順で次、なければ前のリストに移す。 */
 export function pickAfterRemoval(
   ids: string[],
   removedId: string,

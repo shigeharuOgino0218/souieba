@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactElement, type ReactNode } from 'react'
-import { Pencil, Trash2, Users } from 'lucide-react'
+import { LogOut, Pencil, Trash2, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import type { List } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -14,24 +14,29 @@ import {
 import { RenameListDrawer } from '@/components/RenameListDrawer'
 import { MembersDrawer } from '@/components/MembersDrawer'
 import { DeleteListDrawer } from '@/components/DeleteListDrawer'
+import { LeaveListDrawer } from '@/components/LeaveListDrawer'
+
+const DESTRUCTIVE_ITEM =
+  'h-12 justify-start gap-3 text-base text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20'
 
 /**
  * 買い物リストごとの「その他」メニュー。
  * 各項目の操作はこのメニューの上に重ねたドロワーで行い、完了したらメニューごと閉じて元の画面に戻す。
  *
- * 削除されたリストのタブは呼び出し元で取り除かれ、このメニュー自体もアンマウントされる。
- * 閉じるアニメーションの途中で消えないよう、onDeleted はメニューが閉じ切ってから呼ぶ。
+ * 末尾の項目はオーナーなら「リストを削除」、メンバーなら「リストから抜ける」のどちらか一方を出す。
+ * どちらの場合もリストは呼び出し元で取り除かれ、このメニュー自体もアンマウントされる。
+ * 閉じるアニメーションの途中で消えないよう、onRemoved はメニューが閉じ切ってから呼ぶ。
  */
 export function ListMenuDrawer({
   list,
   onRenamed,
-  onDeleted,
+  onRemoved,
   trigger,
   children,
 }: {
   list: Pick<List, 'id' | 'name' | 'owner_id'>
   onRenamed: (name: string) => void
-  onDeleted: () => void
+  onRemoved: () => void
   trigger: ReactElement
   children: ReactNode
 }) {
@@ -40,7 +45,8 @@ export function ListMenuDrawer({
   const [renameOpen, setRenameOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const deletedRef = useRef(false)
+  const [leaveOpen, setLeaveOpen] = useState(false)
+  const removedRef = useRef(false)
   const isOwner = session?.user.id === list.owner_id
 
   const handleRenamed = (name: string) => {
@@ -49,14 +55,15 @@ export function ListMenuDrawer({
     setMenuOpen(false)
   }
 
-  const handleDeleted = () => {
-    deletedRef.current = true
+  const handleRemoved = () => {
+    removedRef.current = true
     setDeleteOpen(false)
+    setLeaveOpen(false)
     setMenuOpen(false)
   }
 
   const handleOpenChangeComplete = (open: boolean) => {
-    if (!open && deletedRef.current) onDeleted()
+    if (!open && removedRef.current) onRemoved()
   }
 
   return (
@@ -88,18 +95,25 @@ export function ListMenuDrawer({
             <Users data-icon="inline" className="size-5" />
             メンバー
           </Button>
-          {isOwner && (
-            <>
-              <Separator className="my-1" />
-              <Button
-                variant="ghost"
-                className="h-12 justify-start gap-3 text-base text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
-                onClick={() => setDeleteOpen(true)}
-              >
-                <Trash2 data-icon="inline" className="size-5" />
-                リストを削除
-              </Button>
-            </>
+          <Separator className="my-1" />
+          {isOwner ? (
+            <Button
+              variant="ghost"
+              className={DESTRUCTIVE_ITEM}
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 data-icon="inline" className="size-5" />
+              リストを削除
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              className={DESTRUCTIVE_ITEM}
+              onClick={() => setLeaveOpen(true)}
+            >
+              <LogOut data-icon="inline" className="size-5" />
+              リストから抜ける
+            </Button>
           )}
         </div>
         <RenameListDrawer
@@ -114,13 +128,21 @@ export function ListMenuDrawer({
           open={membersOpen}
           onOpenChange={setMembersOpen}
         />
-        {isOwner && (
+        {isOwner ? (
           <DeleteListDrawer
             listId={list.id}
             listName={list.name}
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
-            onDeleted={handleDeleted}
+            onDeleted={handleRemoved}
+          />
+        ) : (
+          <LeaveListDrawer
+            listId={list.id}
+            listName={list.name}
+            open={leaveOpen}
+            onOpenChange={setLeaveOpen}
+            onLeft={handleRemoved}
           />
         )}
       </DrawerContent>

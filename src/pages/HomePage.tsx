@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowUpRight,
@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import {
   pickAfterRemoval,
@@ -18,18 +17,8 @@ import {
 } from '@/lib/lists'
 import type { List } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   Drawer,
   DrawerClose,
@@ -41,35 +30,32 @@ import {
 import { UserAvatar } from '@/components/UserAvatar'
 import { useMyProfile } from '@/hooks/useMyProfile'
 import { LAST_LIST_KEY, ListEditor } from '@/components/ListEditor'
-import { MemberList } from '@/components/MemberList'
 import { InviteDrawer } from '@/components/InviteDrawer'
 import { ListMenuDrawer } from '@/components/ListMenuDrawer'
-import logo from '@/assets/logo.svg'
-
-const MAX_TAB_AVATARS = 3
+import { ListSwitcherDrawer } from '@/components/ListSwitcherDrawer'
+import { CreateListDrawer } from '@/components/CreateListDrawer'
 
 export default function HomePage() {
-  const { session, signOut } = useAuth()
+  const { signOut } = useAuth()
   const { profile } = useMyProfile()
   const [lists, setLists] = useState<List[]>([])
   const [loading, setLoading] = useState(true)
-  const [newName, setNewName] = useState('')
-  const [creating, setCreating] = useState(false)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
   // 通知や招待から来たときに開くリスト。マウント時の location.state だけを使い、以降の変化には追従しない
   const [requestedId] = useState(() => readRequestedListId(location.state))
+  const active = lists.find((l) => l.id === activeId)
 
-  // 再読み込みで指定のタブに戻されないよう、受け取った state は履歴から消す
+  // 再読み込みで指定のリストに戻されないよう、受け取った state は履歴から消す
   useEffect(() => {
     if (readRequestedListId(location.state)) {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.state, location.pathname, navigate])
 
-  // 指定されたリスト → 最後に編集していたリスト → 先頭の順で、最初に選ぶタブを決める
+  // 指定されたリスト → 最後に編集していたリスト → 先頭の順で、最初に開くリストを決める
   useEffect(() => {
     supabase
       .from('lists')
@@ -96,32 +82,18 @@ export default function HomePage() {
       })
   }, [requestedId])
 
-  const handleCreate = async (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const name = newName.trim()
-    if (!name || !session) return
-    setCreating(true)
-    const { data, error } = await supabase
-      .from('lists')
-      .insert({ name, owner_id: session.user.id })
-      .select()
-      .single()
-    setCreating(false)
-    if (error || !data) {
-      toast.error('リストの作成に失敗しました')
-      return
-    }
-    setLists((prev) => [...prev, data])
-    setActiveId(data.id)
-    setDialogOpen(false)
-    setNewName('')
+  const handleCreated = (list: List) => {
+    setLists((prev) => [...prev, list])
+    setActiveId(list.id)
+    setCreateOpen(false)
   }
 
   const handleRenamed = (id: string, name: string) => {
     setLists((prev) => prev.map((l) => (l.id === id ? { ...l, name } : l)))
   }
 
-  const handleDeleted = (id: string) => {
+  // 削除・退会のどちらでもリストが手元から消えるので、選択中なら隣のリストに移す
+  const handleRemoved = (id: string) => {
     if (localStorage.getItem(LAST_LIST_KEY) === id) {
       localStorage.removeItem(LAST_LIST_KEY)
     }
@@ -137,9 +109,18 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <header className="mb-2 flex h-16 items-center justify-between px-4">
-        <h1>
-          <img src={logo} alt="そういえば" className="h-6" />
+      <header className="mb-2 flex h-16 items-center justify-between gap-4 px-4">
+        <h1 className="-ml-2 min-w-0">
+          {loading ? (
+            <Skeleton className="ml-2 h-6 w-40" />
+          ) : (
+            <ListSwitcherDrawer
+              lists={lists}
+              activeId={activeId}
+              onSelect={setActiveId}
+              onCreated={handleCreated}
+            />
+          )}
         </h1>
         <Drawer showSwipeHandle={true}>
           <DrawerTrigger
@@ -147,7 +128,7 @@ export default function HomePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-fit w-fit border-none"
+                className="h-fit w-fit shrink-0 border-none"
                 aria-label="アカウントメニュー"
               />
             }
@@ -194,131 +175,65 @@ export default function HomePage() {
       </header>
 
       {loading ? (
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Skeleton className="h-[84px] w-36 rounded-2xl" />
-            <Skeleton className="h-[84px] w-36 rounded-2xl" />
-          </div>
-          <Skeleton className="h-40 w-full" />
+        <div className="space-y-2 px-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      ) : active ? (
+        <div className="mt-2 px-4">
+          {/* リストごとに入力中の状態や購読を持つので、切り替えたら作り直す */}
+          <ListEditor
+            key={active.id}
+            listId={active.id}
+            action={
+              <div className="flex items-center rounded-full border bg-background p-0.5 dark:bg-muted">
+                <InviteDrawer
+                  listId={active.id}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`${active.name}を共有`}
+                    />
+                  }
+                >
+                  <Share />
+                </InviteDrawer>
+                <ListMenuDrawer
+                  list={active}
+                  onRenamed={(name) => handleRenamed(active.id, name)}
+                  onRemoved={() => handleRemoved(active.id)}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`${active.name}のメニュー`}
+                    />
+                  }
+                >
+                  <EllipsisVertical />
+                </ListMenuDrawer>
+              </div>
+            }
+          />
         </div>
       ) : (
-        <Tabs value={activeId} onValueChange={(v) => setActiveId(v as string)}>
-          <div className="flex snap-x snap-mandatory scroll-pl-4 [scrollbar-width:none] items-stretch gap-2 overflow-x-auto overflow-y-hidden px-4 [&::-webkit-scrollbar]:hidden">
-            <TabsList className="gap-2 rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-auto">
-              {lists.map((list) => (
-                // メニューのボタンをタブ(button)の中に入れると入れ子になるため、兄弟として右上に重ねる
-                <div
-                  key={list.id}
-                  className="relative w-[min(180px,42vw)] flex-none snap-start"
-                >
-                  <TabsTrigger
-                    value={list.id}
-                    className="group/tab h-auto w-full flex-col items-start justify-between gap-3 rounded-xl bg-muted p-3 text-foreground dark:text-foreground data-active:bg-primary data-active:text-primary-foreground dark:data-active:bg-primary dark:data-active:text-primary-foreground"
-                  >
-                    <span className="max-w-full truncate pr-6 font-bold">
-                      {list.name}
-                    </span>
-                    <span className="flex min-h-8 items-center">
-                      <MemberList
-                        listId={list.id}
-                        maxVisible={MAX_TAB_AVATARS}
-                        avatarClassName="ring-muted group-data-active/tab:ring-primary"
-                      />
-                    </span>
-                  </TabsTrigger>
-                  <ListMenuDrawer
-                    list={list}
-                    onRenamed={(name) => handleRenamed(list.id, name)}
-                    onDeleted={() => handleDeleted(list.id)}
-                    trigger={
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className={cn(
-                          'absolute top-1.5 right-1.5',
-                          list.id === activeId
-                            ? 'text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground aria-expanded:bg-primary-foreground/15 aria-expanded:text-primary-foreground dark:hover:bg-primary-foreground/15'
-                            : 'hover:bg-foreground/10 aria-expanded:bg-foreground/10 dark:hover:bg-foreground/10',
-                        )}
-                        aria-label={`${list.name}のメニュー`}
-                      />
-                    }
-                  >
-                    <EllipsisVertical />
-                  </ListMenuDrawer>
-                </div>
-              ))}
-            </TabsList>
-            <Button
-              variant="secondary"
-              className="grid h-auto w-[min(180px,42vw)] snap-start items-center rounded-xl border-border p-3"
-              onClick={() => setDialogOpen(true)}
-            >
-              <span className="max-w-full truncate font-bold">
-                買い物リストを追加
-              </span>
-              <CirclePlus className="mx-auto size-6" />
-            </Button>
-          </div>
-          {lists.map((list) => (
-            <TabsContent key={list.id} value={list.id} className="mt-2 px-4">
-              <ListEditor
-                listId={list.id}
-                action={
-                  <div className="flex items-center rounded-full border bg-background p-0.5 dark:bg-muted">
-                    <InviteDrawer
-                      listId={list.id}
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`${list.name}を共有`}
-                        />
-                      }
-                    >
-                      <Share />
-                    </InviteDrawer>
-                  </div>
-                }
-              />
-            </TabsContent>
-          ))}
-        </Tabs>
+        <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
+          <p className="text-muted-foreground">買い物リストがありません</p>
+          <Button onClick={() => setCreateOpen(true)}>
+            <CirclePlus data-icon="inline-start" />
+            買い物リストを追加
+          </Button>
+        </div>
       )}
 
-      <Dialog
-        open={dialogOpen}
-        onOpenChange={(open) => {
-          setDialogOpen(open)
-          if (!open) setNewName('')
-        }}
-      >
-        <DialogContent className="top-24 translate-y-0 sm:top-1/2 sm:max-w-md sm:-translate-y-1/2">
-          <DialogHeader>
-            <DialogTitle>買い物リストを追加</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="listName">リスト名</Label>
-              <Input
-                id="listName"
-                autoFocus
-                placeholder="例: いつもの買い物"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                type="submit"
-                disabled={creating || newName.trim() === ''}
-              >
-                {creating ? '追加中…' : '追加'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* 作成するとリストが 1 件になり空の案内が消えるので、閉じるアニメーションを残すため分岐の外に置く */}
+      <CreateListDrawer
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={handleCreated}
+      />
     </div>
   )
 }
