@@ -96,8 +96,12 @@ export function ItemRow({
         />
         {(store || item.repeat) && (
           <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-            {store && <span className="truncate">{store.name}</span>}
-            {store && item.repeat && <span aria-hidden="true">·</span>}
+            {store && (
+              <span className="flex min-w-0">
+                <span className="truncate">{store.name}</span>
+                {item.repeat && <span aria-hidden="true">,</span>}
+              </span>
+            )}
             {item.repeat && (
               <span className="flex shrink-0 items-center gap-0.5">
                 <Repeat className="size-3" />

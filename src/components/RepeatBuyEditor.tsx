@@ -314,7 +314,6 @@ function RepeatItemButton({
       aria-pressed={selected}
       onClick={onClick}
     >
-      {selected && <Check data-icon="inline-start" />}
       <span className="text-trim">{item.name}</span>
     </Button>
   )

@@ -32,6 +32,8 @@ type Props = {
  * 一番下のボタンは、普通のアイテムなら「削除」、リピ買いなら「リピ買いに戻す」。
  * どちらも行がリストから消えてこのドロワーごとアンマウントされるので、
  * 閉じるアニメーションの途中で消えないよう、ドロワーが閉じ切ってから実行する。
+ *
+ * 下端の余白はボトムメニューと同じ高さ(4rem + ホームインジケーター分。後者は index.css でドロワーに足している)にする。
  */
 export function ItemSettingsDrawer({
   item,
@@ -85,7 +87,7 @@ export function ItemSettingsDrawer({
         <DrawerHeader>
           <DrawerTitle className="truncate">{item.name}</DrawerTitle>
         </DrawerHeader>
-        <div className="grid gap-4 overflow-y-auto px-4 pb-6">
+        <div className="grid gap-4 overflow-y-auto px-4 pb-16">
           <div className="flex items-center justify-between gap-4 p-1">
             <Label htmlFor={`repeat-${item.id}`} className="text-sm font-bold">
               <Repeat className="size-4" />
