@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom'
+import { useLayoutEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 import { ActiveListProvider, ListsProvider, useLists } from '@/hooks/useLists'
 import { BottomNav } from '@/components/BottomNav'
 import { CreateListDrawer } from '@/components/CreateListDrawer'
@@ -10,6 +11,7 @@ import { CreateListDrawer } from '@/components/CreateListDrawer'
 export function AppLayout() {
   return (
     <ListsProvider>
+      <ScrollToTopOnTabChange />
       <div className="pb-[calc(var(--bottom-nav-height)+1rem)]">
         <ActiveListProvider>
           <Outlet />
@@ -34,4 +36,16 @@ function EmptyStateCreateListDrawer() {
       onCreated={handleCreated}
     />
   )
+}
+
+/**
+ * タブを移ったら先頭から表示する。3タブは同じ window のスクロールを共有するので、
+ * 何もしないと前のタブでスクロールした位置のまま次のタブが出る。描画前に戻してちらつきを防ぐ。
+ */
+function ScrollToTopOnTabChange() {
+  const { pathname } = useLocation()
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
 }
