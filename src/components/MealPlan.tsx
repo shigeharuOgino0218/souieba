@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ListBodySkeleton } from '@/components/ListHeader'
 import { useMeals } from '@/hooks/useMeals'
 import {
@@ -72,8 +73,8 @@ function MealInput({
 }
 
 /**
- * 献立のタブの本文。昨日から6日後までの8日を縦に並べ、各日に朝・昼・夜の3行を置く。
- * 今日は見出しを primary 色にしてバッジを付ける。昨日は全体を薄くし、読むだけにする。
+ * 献立のタブの本文。昨日から6日後までの8日を1日1枚のカードで縦に並べ、各カードに朝・昼・夜の3行を置く。
+ * 今日はカードの枠と見出しを primary 色にしてバッジを付ける。昨日はカード全体を薄くし、読むだけにする。
  */
 export function MealPlan({ listId }: { listId: string }) {
   const days = useMealDays()
@@ -82,24 +83,32 @@ export function MealPlan({ listId }: { listId: string }) {
   if (loading) return <ListBodySkeleton />
 
   return (
-    <div className="divide-y">
+    <div className="mt-2 flex flex-col gap-3">
       {days.map((day) => {
         const readOnly = day.relation === 'yesterday'
+        const today = day.relation === 'today'
         return (
-          <section
+          <Card
             key={day.date}
-            className={cn('py-3', readOnly && 'opacity-60')}
+            size="sm"
+            className={cn(
+              'gap-2',
+              readOnly && 'opacity-60',
+              today && 'ring-2 ring-primary/60',
+            )}
           >
-            <h2
-              className={cn(
-                'flex items-center gap-2 text-sm font-bold',
-                day.relation === 'today' && 'text-primary',
-              )}
-            >
-              {day.label}
-              {day.relation === 'today' && <Badge>今日</Badge>}
-            </h2>
-            <div className="mt-1">
+            <CardHeader>
+              <CardTitle
+                className={cn(
+                  'flex items-center gap-2 text-sm font-bold',
+                  today && 'text-primary',
+                )}
+              >
+                {day.label}
+                {today && <Badge>今日</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               {MEAL_SLOTS.map(({ slot, label }) => {
                 const body = meals.get(mealKey(day.date, slot))?.body ?? ''
                 return (
@@ -124,8 +133,8 @@ export function MealPlan({ listId }: { listId: string }) {
                   </div>
                 )
               })}
-            </div>
-          </section>
+            </CardContent>
+          </Card>
         )
       })}
     </div>
