@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useMyProfile } from '@/hooks/useMyProfile'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Drawer,
   DrawerClose,
@@ -62,7 +63,7 @@ function AccountMenuDrawer() {
             size="md"
           />
         ) : (
-          <CircleUserRound className="size-5" />
+          <Skeleton className="size-10 rounded-full" />
         )}
       </DrawerTrigger>
       <DrawerContent>

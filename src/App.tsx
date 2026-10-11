@@ -6,6 +6,7 @@ import {
   useParams,
 } from 'react-router-dom'
 import { AuthProvider } from '@/hooks/useAuth'
+import { MyProfileProvider } from '@/hooks/useMyProfile'
 import { RequireAuth } from '@/components/RequireAuth'
 import { PushNavigator } from '@/components/PushNavigator'
 import { AppLayout } from '@/components/AppLayout'
@@ -39,25 +40,27 @@ function ListRedirect() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <PushNavigator />
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route element={<RequireAuth />}>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/repeat" element={<RepeatPage />} />
-              <Route path="/meals" element={<MealsPage />} />
+      <MyProfileProvider>
+        <BrowserRouter>
+          <PushNavigator />
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route element={<RequireAuth />}>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/repeat" element={<RepeatPage />} />
+                <Route path="/meals" element={<MealsPage />} />
+              </Route>
+              <Route path="/lists/:listId" element={<ListRedirect />} />
+              <Route path="/invite/:token" element={<InvitePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
-            <Route path="/lists/:listId" element={<ListRedirect />} />
-            <Route path="/invite/:token" element={<InvitePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </MyProfileProvider>
       <Toaster position="top-center" richColors />
     </AuthProvider>
   )
