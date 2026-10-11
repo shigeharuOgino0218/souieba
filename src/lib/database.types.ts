@@ -182,6 +182,35 @@ export type Database = {
           },
         ]
       }
+      meals: {
+        Row: {
+          body: string
+          date: string
+          list_id: string
+          slot: string
+        }
+        Insert: {
+          body: string
+          date: string
+          list_id: string
+          slot: string
+        }
+        Update: {
+          body?: string
+          date?: string
+          list_id?: string
+          slot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meals_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_color: string

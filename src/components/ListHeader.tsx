@@ -7,9 +7,9 @@ import { InviteDrawer } from '@/components/InviteDrawer'
 import { ListSwitcherDrawer } from '@/components/ListSwitcherDrawer'
 
 /**
- * 買い物リストとリピ買いのタブのヘッダー。見出しをリストの切り替えにし、そのすぐ右に選択中のリストの「共有」を薄いピルで置く。
+ * 買い物リスト・リピ買い・献立のタブのヘッダー。見出しをリストの切り替えにし、そのすぐ右に選択中のリストの「共有」を薄いピルで置く。
  * リストごとの名前の変更・メンバー・削除は切り替えドロワーの各行のメニューから行う。
- * どちらのタブで切り替えても、選択中のリストは useLists を通じて共有される。
+ * どのタブで切り替えても、選択中のリストは useLists を通じて共有される。
  */
 export function ListHeader() {
   const {
@@ -60,7 +60,7 @@ export function ListHeader() {
   )
 }
 
-/** リストが1件も無いときの案内。リストに属するリピ買いのタブでも同じものを出す */
+/** リストが1件も無いときの案内。リストに属するリピ買いと献立のタブでも同じものを出す */
 export function NoListsPlaceholder() {
   const { setCreateOpen } = useLists()
   return (
