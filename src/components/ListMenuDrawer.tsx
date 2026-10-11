@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactElement, type ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import { LogOut, Pencil, Trash2, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import type { List } from '@/lib/types'
@@ -9,7 +9,6 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from '@/components/ui/drawer'
 import { RenameListDrawer } from '@/components/RenameListDrawer'
 import { MembersDrawer } from '@/components/MembersDrawer'
@@ -20,28 +19,27 @@ const DESTRUCTIVE_ITEM =
   'h-12 justify-start gap-3 text-base text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20'
 
 /**
- * 買い物リストごとの「その他」メニュー。
- * 各項目の操作はこのメニューの上に重ねたドロワーで行い、完了したらメニューごと閉じて元の画面に戻す。
+ * 買い物リストごとの「その他」メニュー。開閉は呼び出し元が制御し、リストの切り替えドロワーの上に重ねて開く。
+ * 各項目の操作はこのメニューの上にさらに重ねたドロワーで行い、完了したらメニューまで閉じて切り替えドロワーに戻す。
  *
  * 末尾の項目はオーナーなら「リストを削除」、メンバーなら「リストから抜ける」のどちらか一方を出す。
- * どちらの場合もリストは呼び出し元で取り除かれ、このメニュー自体もアンマウントされる。
- * 閉じるアニメーションの途中で消えないよう、onRemoved はメニューが閉じ切ってから呼ぶ。
+ * どちらの場合もリストは呼び出し元で取り除かれる。メニューが閉じ切ってから onRemoved を呼び、
+ * 一覧から行が消えるのをメニューが下りたあとに見せる。
  */
 export function ListMenuDrawer({
   list,
+  open,
+  onOpenChange,
   onRenamed,
   onRemoved,
-  trigger,
-  children,
 }: {
   list: Pick<List, 'id' | 'name' | 'owner_id'>
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onRenamed: (name: string) => void
   onRemoved: () => void
-  trigger: ReactElement
-  children: ReactNode
 }) {
   const { session } = useAuth()
-  const [menuOpen, setMenuOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -52,28 +50,29 @@ export function ListMenuDrawer({
   const handleRenamed = (name: string) => {
     onRenamed(name)
     setRenameOpen(false)
-    setMenuOpen(false)
+    onOpenChange(false)
   }
 
   const handleRemoved = () => {
     removedRef.current = true
     setDeleteOpen(false)
     setLeaveOpen(false)
-    setMenuOpen(false)
+    onOpenChange(false)
   }
 
   const handleOpenChangeComplete = (open: boolean) => {
-    if (!open && removedRef.current) onRemoved()
+    if (open || !removedRef.current) return
+    removedRef.current = false
+    onRemoved()
   }
 
   return (
     <Drawer
       showSwipeHandle={true}
-      open={menuOpen}
-      onOpenChange={setMenuOpen}
+      open={open}
+      onOpenChange={onOpenChange}
       onOpenChangeComplete={handleOpenChangeComplete}
     >
-      <DrawerTrigger render={trigger}>{children}</DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle className="truncate">{list.name}</DrawerTitle>

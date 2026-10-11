@@ -1,14 +1,14 @@
-import { CirclePlus, EllipsisVertical, Share } from 'lucide-react'
+import { CirclePlus, Share } from 'lucide-react'
 import { useLists } from '@/hooks/useLists'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AppHeader } from '@/components/AppHeader'
 import { InviteDrawer } from '@/components/InviteDrawer'
-import { ListMenuDrawer } from '@/components/ListMenuDrawer'
 import { ListSwitcherDrawer } from '@/components/ListSwitcherDrawer'
 
 /**
- * 買い物リストとリピ買いのタブのヘッダー。見出しをリストの切り替えにし、そのすぐ右に選択中のリストの「共有」と「︙」を薄いピルでまとめる。
+ * 買い物リストとリピ買いのタブのヘッダー。見出しをリストの切り替えにし、そのすぐ右に選択中のリストの「共有」を薄いピルで置く。
+ * リストごとの名前の変更・メンバー・削除は切り替えドロワーの各行のメニューから行う。
  * どちらのタブで切り替えても、選択中のリストは useLists を通じて共有される。
  */
 export function ListHeader() {
@@ -33,12 +33,14 @@ export function ListHeader() {
             activeId={active?.id ?? null}
             onSelect={select}
             onCreated={handleCreated}
+            onRenamed={handleRenamed}
+            onRemoved={handleRemoved}
           />
         )
       }
       actions={
         active && (
-          <div className="flex items-center rounded-full bg-muted/50 p-0.5">
+          <div className="flex items-center rounded-full bg-muted p-0.5">
             <InviteDrawer
               listId={active.id}
               trigger={
@@ -51,20 +53,6 @@ export function ListHeader() {
             >
               <Share />
             </InviteDrawer>
-            <ListMenuDrawer
-              list={active}
-              onRenamed={(name) => handleRenamed(active.id, name)}
-              onRemoved={() => handleRemoved(active.id)}
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`${active.name}のメニュー`}
-                />
-              }
-            >
-              <EllipsisVertical />
-            </ListMenuDrawer>
           </div>
         )
       }
