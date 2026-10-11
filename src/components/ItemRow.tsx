@@ -3,6 +3,7 @@ import { Repeat } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { ItemSettingsDrawer } from '@/components/ItemSettingsDrawer'
+import { splitPastedLines } from '@/lib/paste'
 import type { Item, Store } from '@/lib/types'
 
 // キーボードが開いて表示領域が縮み終わるのを待つ上限。これを過ぎた画面サイズの変化には追従しない
@@ -32,6 +33,7 @@ type Props = {
   onToggle: (id: string, checked: boolean) => void
   onEnter: (id: string) => void
   onBackspaceEmpty: (id: string) => void
+  onPasteLines: (id: string, names: string[]) => void
   onSetStore: (itemId: string, storeId: string | null) => void
   onSetRepeat: (itemId: string, repeat: boolean) => void
   onDelete: (itemId: string) => void
@@ -48,6 +50,9 @@ type Props = {
  * リピ買いの名前はリピ買いのタブにも出るので空にさせない。Backspace では行を消さず、
  * 空のまま入力を終えたら、編集を始めたときの名前に戻す。
  * 入力欄にフォーカスしたら、タップでも Enter での移動でも、行が「追加」ボタンに隠れないようスクロールする。
+ *
+ * input は改行を持てず、貼り付けた改行はスペースに潰される。2行以上を貼り付けたら自前で分け、
+ * 1行目はこの行のカーソル位置に入れ、残りは onPasteLines で直下の新しい行にする。
  */
 export function ItemRow({
   item,
@@ -56,6 +61,7 @@ export function ItemRow({
   onToggle,
   onEnter,
   onBackspaceEmpty,
+  onPasteLines,
   onSetStore,
   onSetRepeat,
   onDelete,
@@ -104,6 +110,19 @@ export function ItemRow({
             }
           }}
           onChange={(e) => onNameChange(item.id, e.target.value)}
+          onPaste={(e) => {
+            const lines = splitPastedLines(e.clipboardData.getData('text'))
+            if (lines.length < 2) return
+            e.preventDefault()
+            const el = e.currentTarget
+            const start = el.selectionStart ?? el.value.length
+            const end = el.selectionEnd ?? start
+            onNameChange(
+              item.id,
+              el.value.slice(0, start) + lines[0] + el.value.slice(end),
+            )
+            onPasteLines(item.id, lines.slice(1))
+          }}
           onKeyDown={(e) => {
             // IME 変換確定の Enter で行を増やさない
             if (e.nativeEvent.isComposing) return

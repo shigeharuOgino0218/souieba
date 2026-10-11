@@ -17,6 +17,22 @@ function endPosition(items: Item[]): number {
   return (sortByPosition(items).at(-1)?.position ?? 0) + 1
 }
 
+/**
+ * afterId の行の直下に count 行を並べるための position。次の行とのあいだを等分して割り込ませ、
+ * 次の行が無ければ 1 ずつ足す。afterId が見つからなければ末尾に並べる。
+ */
+function positionsAfter(
+  sorted: Item[],
+  afterId: string,
+  count: number,
+): number[] {
+  const idx = sorted.findIndex((i) => i.id === afterId)
+  const start = idx === -1 ? endPosition(sorted) - 1 : sorted[idx].position
+  const next = idx === -1 ? undefined : sorted[idx + 1]
+  const step = next ? (next.position - start) / (count + 1) : 1
+  return Array.from({ length: count }, (_, k) => start + step * (k + 1))
+}
+
 function upsertById<T extends { id: string }>(rows: T[], row: T): T[] {
   return rows.some((r) => r.id === row.id)
     ? rows.map((r) => (r.id === row.id ? row : r))
@@ -129,17 +145,9 @@ export function useListData(listId: string, userId: string) {
     (afterId?: string): string => {
       const id = generateId()
       const sorted = sortByPosition(itemsRef.current)
-      let position: number
-      if (afterId) {
-        const idx = sorted.findIndex((i) => i.id === afterId)
-        const cur = sorted[idx]
-        const next = sorted[idx + 1]
-        position = next
-          ? (cur.position + next.position) / 2
-          : (cur?.position ?? 0) + 1
-      } else {
-        position = endPosition(sorted)
-      }
+      const position = afterId
+        ? positionsAfter(sorted, afterId, 1)[0]
+        : endPosition(sorted)
       const newItem: Item = {
         id,
         list_id: listId,
@@ -163,6 +171,51 @@ export function useListData(listId: string, userId: string) {
           }
         })
       return id
+    },
+    [listId, userId],
+  )
+
+  // 複数行の貼り付けで、afterId の行の直下に名前付きの行をまとめて足す。1回の INSERT で送り、最後の行に移れるよう id を返す
+  const addItemsAfter = useCallback(
+    (afterId: string, names: string[]): string[] => {
+      const positions = positionsAfter(
+        sortByPosition(itemsRef.current),
+        afterId,
+        names.length,
+      )
+      const now = new Date().toISOString()
+      const newItems: Item[] = names.map((name, k) => ({
+        id: generateId(),
+        list_id: listId,
+        name,
+        checked: false,
+        store_id: null,
+        position: positions[k],
+        created_by: userId,
+        created_at: now,
+        repeat: false,
+        shelved: false,
+      }))
+      const ids = new Set(newItems.map((i) => i.id))
+      setItems((prev) => sortByPosition([...prev, ...newItems]))
+      supabase
+        .from('items')
+        .insert(
+          newItems.map(({ id, name, position }) => ({
+            id,
+            list_id: listId,
+            name,
+            position,
+            created_by: userId,
+          })),
+        )
+        .then(({ error }) => {
+          if (error) {
+            toast.error('アイテムの追加に失敗しました')
+            setItems((prev) => prev.filter((i) => !ids.has(i.id)))
+          }
+        })
+      return newItems.map((i) => i.id)
     },
     [listId, userId],
   )
@@ -345,6 +398,7 @@ export function useListData(listId: string, userId: string) {
     stores,
     loading,
     addItem,
+    addItemsAfter,
     updateItemName,
     toggleChecked,
     setItemStore,

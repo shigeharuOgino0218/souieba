@@ -32,6 +32,7 @@ export function ListEditor() {
     stores,
     loading,
     addItem,
+    addItemsAfter,
     updateItemName,
     toggleChecked,
     setItemStore,
@@ -83,6 +84,8 @@ export function ListEditor() {
 
   const handleEnter = (id: string) => setFocusId(addItem(id))
   const handleAdd = () => setFocusId(addItem())
+  const handlePasteLines = (id: string, names: string[]) =>
+    setFocusId(addItemsAfter(id, names).at(-1) ?? null)
 
   const handleBackspaceEmpty = (id: string) => {
     const idx = listItems.findIndex((i) => i.id === id)
@@ -113,6 +116,7 @@ export function ListEditor() {
           onToggle={toggleChecked}
           onEnter={handleEnter}
           onBackspaceEmpty={handleBackspaceEmpty}
+          onPasteLines={handlePasteLines}
           onSetStore={setItemStore}
           onSetRepeat={setRepeat}
           onDelete={deleteItem}
