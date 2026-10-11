@@ -48,6 +48,8 @@
    * 片付けの予告や「追加」「買い物リストに登録」のボタンは、この高さを基準にメニューの上へ置く。
    */
   --bottom-nav-height: calc(4rem + env(safe-area-inset-bottom));
+  /* 画面上端に固定するヘッダー (AppHeader) の高さ */
+  --app-header-height: 4rem;
 }
 
 /*
@@ -156,6 +158,8 @@
     font-feature-settings: "palt";
     letter-spacing: 0.025em;
     touch-action: manipulation;
+    /* フォーカスした行へのスクロール (scrollIntoView) で、行が固定ヘッダーの裏に入らないようにする */
+    scroll-padding-top: var(--app-header-height);
   }
 
   /*

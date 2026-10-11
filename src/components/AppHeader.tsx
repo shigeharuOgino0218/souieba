@@ -19,6 +19,7 @@ import { UserAvatar } from '@/components/UserAvatar'
  * タブの画面に共通のヘッダー。左に見出しと画面ごとの操作を並べ、右端にアカウントメニューを置く。
  * 見出しのボタン(リストの切り替え)は左に余白を持つので、h1 を同じだけ左へずらして端を揃える。
  * 見出しが長いときは見出しの方を省略し、操作は縮めない。
+ * 画面上端に固定し、下をスクロールする本文が透けないよう背景を塗る。高さは index.css の --app-header-height と揃える。
  */
 export function AppHeader({
   title,
@@ -28,7 +29,7 @@ export function AppHeader({
   actions?: ReactNode
 }) {
   return (
-    <header className="mb-2 flex h-16 items-center justify-between gap-4 px-4">
+    <header className="sticky top-0 z-10 mb-2 flex h-16 items-center justify-between gap-4 bg-background px-4">
       <div className="flex min-w-0 items-center gap-1">
         <h1 className="-ml-2 min-w-0">{title}</h1>
         {actions && <div className="shrink-0">{actions}</div>}
